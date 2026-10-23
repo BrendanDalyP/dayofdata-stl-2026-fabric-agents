@@ -9,7 +9,7 @@ Each agents/<name>/ folder holds:
 Usage (after `az login` to the tenant that owns the workspace):
     pip install mssql-python
     python create_agents.py --workspace-id <guid> --lakehouse-id <guid> --lakehouse-name lh__spaceparts \
-        --sql-server <endpoint>.datawarehouse.fabric.microsoft.com [--schema SpaceParts] [--only sales-analyst]
+        --sql-server <endpoint>.datawarehouse.fabric.microsoft.com [--schema SpaceParts] [--only sales-analyst] [--folder-id <guid>]
 
 Prints each agent's MCP URL. Re-running updates the agents in place and republishes them.
 """
@@ -135,6 +135,7 @@ def main():
     p.add_argument("--sql-server", required=True)
     p.add_argument("--schema", default="SpaceParts")
     p.add_argument("--only", help="agent folder name to build, e.g. sales-analyst")
+    p.add_argument("--folder-id", help="workspace folder to create the agents in (e.g. Day of Data STL)")
     args = p.parse_args()
 
     folders = [f for f in sorted(ROOT.iterdir()) if (f / "agent.json").exists() and (not args.only or f.name == args.only)]
@@ -155,7 +156,10 @@ def main():
             call("POST", f"{API}/workspaces/{ws}/dataAgents/{agent_id}/updateDefinition", {"definition": definition})
         else:
             print(f"Creating  {name}")
-            created = call("POST", f"{API}/workspaces/{ws}/dataAgents", {"displayName": name, "description": meta["description"][:256], "definition": definition})
+            body = {"displayName": name, "description": meta["description"][:256], "definition": definition}
+            if args.folder_id:
+                body["folderId"] = args.folder_id
+            created = call("POST", f"{API}/workspaces/{ws}/dataAgents", body)
             agent_id = (created or {}).get("id") or {a["displayName"]: a["id"] for a in call("GET", f"{API}/workspaces/{ws}/dataAgents")["value"]}[name]
         print(f"Publishing {name}")
         call("POST", f"{API}/workspaces/{ws}/dataAgents/{agent_id}/staging/publish", {"publishedDescription": meta["description"]})

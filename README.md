@@ -30,7 +30,7 @@ Every demo answer is checked against [`labs/01-data-agent/verify_answers.sql`](l
 
 | Item | Where |
 | --- | --- |
-| Workspace | Fabric Demos (`aa68b708-…`) |
+| Workspace | Fabric Demos (`aa68b708-…`), folder **Day of Data STL** (`f93784bd-…`) — every item built for the talk lives there |
 | Lakehouse | `lh__spaceparts`, schema `SpaceParts`; app tables in schema `app` |
 | Agents | SpaceParts Sales Analyst · SpaceParts Operations · SpaceParts Planning (`labs/01-data-agent/published-agents.json`) |
 | App | `spaceparts-mission-control` → <https://keen-blaze-6f617cb0d9-northcentralus.webapp.fabricapps.net> |

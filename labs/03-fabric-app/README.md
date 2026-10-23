@@ -46,7 +46,7 @@ browser ──(question, agent key)──▶ Rayfin function askDataAgent ──
 3. **Point the app at your agents:** paste the three `mcpUrl` values from `labs/01-data-agent/published-agents.json` into `rayfin/functions/src/agents.ts`.
 4. **Build the Overview tables** (once, and whenever the data changes):
    ```powershell
-   python fabric/deploy_app_tables.py --workspace-id <ws> --lakehouse-id <lh> --lakehouse-name lh__spaceparts
+   python fabric/deploy_app_tables.py --workspace-id <ws> --lakehouse-id <lh> --lakehouse-name lh__spaceparts [--folder-id <folder id>]
    ```
    > Why tables, not SQL views? The connector reads through Fabric's GraphQL layer, which needs table metadata and rejects views.
 5. **Connect the lakehouse** (already in `rayfin/rayfin.yml` for the reference workspace; for yours):
@@ -59,6 +59,12 @@ browser ──(question, agent key)──▶ Rayfin function askDataAgent ──
    npx rayfin up --workspace-id <ws> --yes
    ```
    It creates the app item, the SQL database (`Insight`), the functions and the static site, and prints the URL.
+   `rayfin up` has no folder option, so after the **first** deploy, move the app into your workspace folder (its database, functions and GraphQL API move with it; later deploys reuse the item):
+   ```powershell
+   $t = az account get-access-token --resource https://api.fabric.microsoft.com --query accessToken -o tsv
+   Invoke-RestMethod -Method Post -Headers @{Authorization="Bearer $t"} -ContentType application/json `
+     -Uri "https://api.fabric.microsoft.com/v1/workspaces/<ws>/items/<app item id>/move" -Body '{"targetFolderId":"<folder id>"}'
+   ```
 7. **Choose the identity.** With no secrets set, the function uses Rayfin's **app identity** — the owner of the app item — and every user's question runs with the owner's permissions. To use the Lab 02 app registration instead:
    ```powershell
    npx rayfin secret set AGENT_TENANT_ID

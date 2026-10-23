@@ -58,7 +58,7 @@ Every extra table is another wrong join the agent can choose.
 pip install mssql-python
 $env:SQL_SERVER = "<endpoint>.datawarehouse.fabric.microsoft.com"; $env:SQL_DB = "lh__spaceparts"
 python validate_fewshots.py           # every example query must PASS
-python create_agents.py --workspace-id <ws> --lakehouse-id <lh> --lakehouse-name lh__spaceparts --sql-server $env:SQL_SERVER
+python create_agents.py --workspace-id <ws> --lakehouse-id <lh> --lakehouse-name lh__spaceparts --sql-server $env:SQL_SERVER --folder-id <folder id>
 ```
 
 `create_agents.py` reads the real column types from the SQL endpoint, builds each agent's definition (`Files/Config/...` parts), creates or updates it, publishes it, and writes the MCP URLs to `published-agents.json`.

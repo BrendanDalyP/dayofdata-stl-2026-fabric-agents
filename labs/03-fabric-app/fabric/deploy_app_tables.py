@@ -79,6 +79,7 @@ def main():
     p.add_argument("--workspace-id", required=True)
     p.add_argument("--lakehouse-id", required=True)
     p.add_argument("--lakehouse-name", required=True)
+    p.add_argument("--folder-id", help="workspace folder for the notebook")
     a = p.parse_args()
     TOKEN = token()
     ws = a.workspace_id
@@ -91,7 +92,10 @@ def main():
         call("POST", f"{API}/workspaces/{ws}/notebooks/{nb_id}/updateDefinition", {"definition": definition})
     else:
         print(f"Creating {NAME}")
-        call("POST", f"{API}/workspaces/{ws}/notebooks", {"displayName": NAME, "definition": definition})
+        body = {"displayName": NAME, "definition": definition}
+        if a.folder_id:
+            body["folderId"] = a.folder_id
+        call("POST", f"{API}/workspaces/{ws}/notebooks", body)
         nb_id = [n for n in call("GET", f"{API}/workspaces/{ws}/notebooks")["value"] if n["displayName"] == NAME][0]["id"]
 
     print("Running… (Spark start-up takes a minute or two)")
