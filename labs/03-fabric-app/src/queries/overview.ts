@@ -1,82 +1,110 @@
-// Overview data, read from the SpaceParts lakehouse through the Rayfin connector
-// (`client.connectors.spaceparts`). The connector runs as the signed-in user
-// (auth: delegated), so the user's own lakehouse permissions apply.
-// Aggregation happens server-side (DAB groupBy), not in the browser.
+// Command-center data, read from the SpaceParts lakehouse through the Rayfin connector
+// (`client.connectors.spaceparts`, auth: delegated → runs as the signed-in user).
+// Aggregation happens server-side (DAB groupBy); the browser only shapes small results.
 
 import { getRayfinClient } from "@/lib/rayfin-client";
 
 // The SpaceParts data ends on 21 Aug 2022. "This year" = 2022 to date;
 // budget comparisons use complete months (Jan–Jul 2022), like the agents.
-export const YEAR_START = new Date("2022-01-01T00:00:00Z");
-export const LAST_FULL_MONTH_END = new Date("2022-08-01T00:00:00Z");
 export const DATA_END_LABEL = "21 Aug 2022";
+export const YTD_MONTHS = 7; // Jan–Jul complete
+export const MONTHS_REMAINING = 5; // Aug–Dec
 
 const sp = () => getRayfinClient().connectors.spaceparts;
-
 const num = (v: number | null | undefined) => Number(v ?? 0);
 const asDate = (v: unknown) => new Date(v as string);
+const isYtd = (d: Date) => d.getUTCFullYear() === 2022 && d.getUTCMonth() < YTD_MONTHS;
 
-export interface MonthPoint { month: Date; netSalesEur: number; budgetEur: number }
-export interface Ranked { name: string; netSalesEur: number; budgetEur: number }
-export interface DeliveryPoint { month: Date; onTimePct: number; latePenaltiesEur: number }
-export interface ForecastRow { productType: string; forecastEur: number; budgetEur: number }
+export interface MonthPoint { month: Date; net: number; budget: number }
+export interface Cell { name: string; month: Date; net: number; budget: number }
+export interface Subject {
+    name: string;
+    kind: "account" | "region";
+    actualYtd: number;   // Jan–Jul 2022
+    budgetYtd: number;   // Jan–Jul 2022
+    budgetFy: number;    // full year 2022
+    net2022: number;     // 2022 to 21 Aug
+}
+export interface DeliveryPoint { month: Date; onTimePct: number; lines: number; penalties: number }
+export interface ForecastRow { productType: string; forecast: number; budget: number }
 
-export async function salesByMonth(): Promise<MonthPoint[]> {
-    const rows = await sp()
-        .SalesVsBudget.groupBy(["month"])
-        .aggregate({ net: { sum: "netSalesEur" }, budget: { sum: "budgetEur" } })
-        .execute();
-    return rows
-        .map((r) => ({ month: asDate(r.fields.month), netSalesEur: num(r.aggregations.net), budgetEur: num(r.aggregations.budget) }))
-        .sort((a, b) => a.month.getTime() - b.month.getTime());
+export interface CommandData {
+    months: MonthPoint[];
+    accountCells: Cell[];
+    regionCells: Cell[];
+    accounts: Subject[];
+    regions: Subject[];
+    delivery: DeliveryPoint[];
+    forecast: ForecastRow[];
 }
 
-export async function salesByRegionThisYear(): Promise<Ranked[]> {
+async function grouped(field: "keyAccountName" | "interplanetaryRegion"): Promise<Cell[]> {
     const rows = await sp()
-        .SalesVsBudget.where({ month: { gte: YEAR_START } })
-        .groupBy(["interplanetaryRegion"])
+        .SalesVsBudget.where({ month: { gte: new Date("2021-01-01T00:00:00Z") } })
+        .groupBy([field, "month"])
         .aggregate({ net: { sum: "netSalesEur" }, budget: { sum: "budgetEur" } })
         .execute();
-    return rows
-        .map((r) => ({ name: String(r.fields.interplanetaryRegion), netSalesEur: num(r.aggregations.net), budgetEur: num(r.aggregations.budget) }))
-        .sort((a, b) => b.netSalesEur - a.netSalesEur);
+    return rows.map((r) => ({
+        name: String((r.fields as Record<string, unknown>)[field]).trim(),
+        month: asDate(r.fields.month),
+        net: num(r.aggregations.net),
+        budget: num(r.aggregations.budget),
+    }));
 }
 
-/** Key accounts, Jan–Jul 2022 (complete months), with budget. */
-export async function keyAccountsVsBudget(): Promise<Ranked[]> {
-    const rows = await sp()
-        .SalesVsBudget.where({ month: { gte: YEAR_START, lt: LAST_FULL_MONTH_END } })
-        .groupBy(["keyAccountName"])
-        .aggregate({ net: { sum: "netSalesEur" }, budget: { sum: "budgetEur" } })
-        .execute();
-    return rows
-        .map((r) => ({ name: String(r.fields.keyAccountName), netSalesEur: num(r.aggregations.net), budgetEur: num(r.aggregations.budget) }))
-        .filter((r) => r.name !== "No Key Account" && r.budgetEur > 0)
-        .sort((a, b) => a.netSalesEur - a.budgetEur - (b.netSalesEur - b.budgetEur));
+function subjects(cells: Cell[], kind: Subject["kind"]): Subject[] {
+    const by = new Map<string, Subject>();
+    for (const c of cells) {
+        if (c.month.getUTCFullYear() !== 2022) continue;
+        const s = by.get(c.name) ?? { name: c.name, kind, actualYtd: 0, budgetYtd: 0, budgetFy: 0, net2022: 0 };
+        s.budgetFy += c.budget;
+        s.net2022 += c.net;
+        if (isYtd(c.month)) { s.actualYtd += c.net; s.budgetYtd += c.budget; }
+        by.set(c.name, s);
+    }
+    return [...by.values()].filter((s) => s.budgetFy > 0);
 }
 
-export async function deliveryByMonth(): Promise<DeliveryPoint[]> {
-    const rows = await sp()
-        .DeliveryByMonth.select(["month", "onTimeLines", "invoiceLines", "latePenaltiesEur"])
-        .first(100)
-        .execute();
-    return rows
+export async function loadCommandData(): Promise<CommandData> {
+    const [accountCells, regionCells, monthRows, deliveryRows, forecastRows] = await Promise.all([
+        grouped("keyAccountName"),
+        grouped("interplanetaryRegion"),
+        sp().SalesVsBudget.groupBy(["month"]).aggregate({ net: { sum: "netSalesEur" }, budget: { sum: "budgetEur" } }).execute(),
+        sp().DeliveryByMonth.select(["month", "onTimeLines", "invoiceLines", "latePenaltiesEur"]).first(100).execute(),
+        sp().ForecastVsBudget.groupBy(["productType"]).aggregate({ forecast: { sum: "forecastEur" }, budget: { sum: "budgetEur" } }).execute(),
+    ]);
+
+    const months = monthRows
+        .map((r) => ({ month: asDate(r.fields.month), net: num(r.aggregations.net), budget: num(r.aggregations.budget) }))
+        .sort((a, b) => +a.month - +b.month);
+
+    const delivery = deliveryRows
         .map((r) => ({
             month: asDate(r.month),
             onTimePct: r.invoiceLines ? (100 * num(r.onTimeLines)) / num(r.invoiceLines) : 0,
-            latePenaltiesEur: num(r.latePenaltiesEur),
+            lines: num(r.invoiceLines),
+            penalties: num(r.latePenaltiesEur),
         }))
-        .sort((a, b) => a.month.getTime() - b.month.getTime());
-}
+        .sort((a, b) => +a.month - +b.month);
 
-export async function forecastVsBudget(): Promise<ForecastRow[]> {
-    const rows = await sp()
-        .ForecastVsBudget.groupBy(["productType"])
-        .aggregate({ forecast: { sum: "forecastEur" }, budget: { sum: "budgetEur" } })
-        .execute();
-    return rows
-        .map((r) => ({ productType: String(r.fields.productType), forecastEur: num(r.aggregations.forecast), budgetEur: num(r.aggregations.budget) }))
-        .sort((a, b) => a.forecastEur - a.budgetEur - (b.forecastEur - b.budgetEur));
+    const forecast = forecastRows.map((r) => ({
+        productType: String(r.fields.productType),
+        forecast: num(r.aggregations.forecast),
+        budget: num(r.aggregations.budget),
+    }));
+
+    const accounts = subjects(accountCells, "account").filter((s) => s.name !== "No Key Account");
+    const regions = subjects(regionCells, "region");
+
+    return {
+        months,
+        accountCells: accountCells.filter((c) => c.name !== "No Key Account"),
+        regionCells,
+        accounts,
+        regions,
+        delivery,
+        forecast,
+    };
 }
 
 export const eur = (v: number, compact = false) =>
@@ -88,3 +116,4 @@ export const eur = (v: number, compact = false) =>
     }).format(v);
 
 export const pct = (v: number, signed = false) => `${signed && v > 0 ? "+" : ""}${v.toFixed(1)}%`;
+export const gapPct = (s: { actualYtd: number; budgetYtd: number }) => (s.actualYtd / s.budgetYtd - 1) * 100;

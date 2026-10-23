@@ -14,6 +14,24 @@
  * resolved by the frontend app's TypeScript compiler.
  */
 
+export type RecoveryPlanResult = {
+  subject: string;
+  actualYtdEur: number;
+  budgetYtdEur: number;
+  gapYtdEur: number;
+  gapYtdPct: number;
+  budgetFullYearEur: number;
+  remainingBudgetEur: number;
+  requiredRestOfYearEur: number;
+  monthsRemaining: number;
+  requiredMonthlyEur: number;
+  budgetMonthlyEur: number;
+  upliftPct: number;
+  verdict: 'on track' | 'recoverable' | 'stretch' | 'reset the plan';
+  steps: string[];
+  actionId: string;
+};
+
 export type AppFunctionsSchema = {
   askDataAgent: {
     input: { agent: string; question: string; conversation: string };
@@ -26,5 +44,17 @@ export type AppFunctionsSchema = {
       identity: 'service principal' | 'app identity';
       elapsedMs: number;
     };
+  };
+  createAction: {
+    input: { kind: string; title: string; subject: string; detail: string; agent: string; sourceQuestion: string };
+    output: { id: string; title: string; priority: string; dueDate: string };
+  };
+  buildRecoveryPlan: {
+    input: { subject: string; actualYtdEur: number; budgetYtdEur: number; budgetFullYearEur: number; monthsRemaining: number; agent: string };
+    output: RecoveryPlanResult;
+  };
+  setActionStatus: {
+    input: { id: string; status: string };
+    output: string;
   };
 };

@@ -47,7 +47,7 @@ export async function askAgent(agent: AgentKey, question: string, conversation =
     }
 
     const reply = await getRayfinClient().functions.askDataAgent.invoke(
-        { agent, question, conversation },
+        { agent, question, conversation: conversation || "-" },
         { timeoutMs: 240_000 },
     );
 
