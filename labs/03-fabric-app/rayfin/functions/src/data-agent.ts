@@ -204,19 +204,19 @@ async function askAssistants(base: string, question: string, conversation: strin
     prior?.assistant ?? (await call('/assistants', { method: 'POST', body: JSON.stringify({ model: 'not used' }) }, 'create assistant')).id;
   const thread = prior?.thread ?? (await call('/threads', { method: 'POST', body: '{}' }, 'create thread')).id;
 
-  await call(`/threads/${thread}/messages`, { method: 'POST', body: JSON.stringify({ role: 'user', content: question }) }, 'add message');
-  const run = await call(`/threads/${thread}/runs`, { method: 'POST', body: JSON.stringify({ assistant_id: assistant }) }, 'start run');
+  await call(`/threads/${encodeURIComponent(thread)}/messages`, { method: 'POST', body: JSON.stringify({ role: 'user', content: question }) }, 'add message');
+  const run = await call(`/threads/${encodeURIComponent(thread)}/runs`, { method: 'POST', body: JSON.stringify({ assistant_id: assistant }) }, 'start run');
 
   let status: string = run.status;
   const deadline = Date.now() + 180_000;
   while (!['completed', 'failed', 'cancelled', 'expired'].includes(status)) {
     if (Date.now() > deadline) throw new Error('The agent did not answer within 180 seconds.');
     await new Promise((r) => setTimeout(r, 1500));
-    status = (await call(`/threads/${thread}/runs/${run.id}`, { method: 'GET' }, 'poll run')).status;
+    status = (await call(`/threads/${encodeURIComponent(thread)}/runs/${encodeURIComponent(run.id)}`, { method: 'GET' }, 'poll run')).status;
   }
   if (status !== 'completed') throw new Error(`Agent run ended with status "${status}".`);
 
-  const msgs = await call(`/threads/${thread}/messages?order=desc&limit=20`, { method: 'GET' }, 'read answer');
+  const msgs = await call(`/threads/${encodeURIComponent(thread)}/messages?order=desc&limit=20`, { method: 'GET' }, 'read answer');
   type Msg = { role: string; run_id?: string; content?: Array<{ text?: { value?: string } }> };
   const list: Msg[] = msgs.data ?? [];
   const msg = list.find((m) => m.role === 'assistant' && m.run_id === run.id) ?? list.find((m) => m.role === 'assistant');
@@ -226,11 +226,21 @@ async function askAssistants(base: string, question: string, conversation: strin
   return { answer, conversation: JSON.stringify(state), protocol: 'assistants' as const };
 }
 
+// Conversation state round-trips through the browser, so treat it as untrusted:
+// every identifier must match a strict pattern before it reaches a URL or header,
+// otherwise the state is dropped and a fresh conversation starts.
+const SAFE_ID = /^[A-Za-z0-9_.:+=/-]{1,200}$/;
+const isSafe = (v: unknown): v is string => typeof v === 'string' && SAFE_ID.test(v) && !v.includes('..');
+
 function parseState<T extends { p: string }>(raw: string | undefined, p: T['p']): T | undefined {
-  if (!raw) return undefined;
+  if (!raw || raw.length > 2000) return undefined;
   try {
-    const s = JSON.parse(raw) as T;
-    return s.p === p ? s : undefined;
+    const s = JSON.parse(raw) as Record<string, unknown>;
+    if (s.p !== p) return undefined;
+    for (const [k, v] of Object.entries(s)) {
+      if (k !== 'p' && v !== undefined && !isSafe(v)) return undefined;
+    }
+    return s as unknown as T;
   } catch {
     return undefined;
   }
