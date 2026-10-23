@@ -5,8 +5,14 @@ import { entity, role, uuid, text, date, set, decimal } from '@microsoft/rayfin-
  * created from agent answers. Shared by everyone who can open the app, and written
  * by the Rayfin functions in rayfin/functions/src/actions.ts (business rules live there).
  */
+// Functions write to the app database as the calling user, so users need 'create'.
+// Updates are limited to the status field: priority, due date, owner and amounts can
+// only be set at creation, by the server-side rules in createAction / buildRecoveryPlan.
+// (A user could still create rows directly through the GraphQL API; a functions-only
+// role would close that, but Rayfin functions don't have a separate identity for the app DB.)
 @entity()
-@role('authenticated', ['read', 'create', 'update'])
+@role('authenticated', ['read', 'create'])
+@role('authenticated', 'update', { include: ['status'] })
 export class ActionItem {
   @uuid() id!: string;
   @set('follow-up', 'escalation', 'recovery-plan', 'watch') kind!: 'follow-up' | 'escalation' | 'recovery-plan' | 'watch';
