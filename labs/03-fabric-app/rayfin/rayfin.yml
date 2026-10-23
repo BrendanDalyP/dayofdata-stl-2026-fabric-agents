@@ -1,0 +1,37 @@
+id: spaceparts-mission-control
+name: spaceparts-mission-control
+version: 1.0.0
+services:
+  auth:
+    enabled: true
+    fabric:
+      enabled: true
+    allowedRedirectUris:
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+      - https://keen-blaze-6f617cb0d9-northcentralus.webapp.fabricapps.net
+  data:
+    enabled: true
+    dialect: mssql
+  storage:
+    enabled: false
+  staticHosting:
+    enabled: true
+    folder: dist
+    buildCommand: npm run build:fabric
+    indexDocument: index.html
+    assetAccess: protected
+  functions:
+    enabled: true
+    auth:
+      type: application
+connectors:
+  - name: spaceparts
+    type: fabric-sqlanalytics
+    config:
+      workspaceId: aa68b708-7b45-4701-abf0-bc1c91be1c59
+      itemId: c4332187-8c1c-4a45-b075-c9fd2236216a
+    auth:
+      type: delegated
+    operations:
+      - name: read

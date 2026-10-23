@@ -1,0 +1,11 @@
+{
+  "name": "SpaceParts Planning",
+  "description": "Answers questions about SpaceParts Co. forecast, budget and brand performance in euros: forecast against budget, actuals against forecast by territory, and brand and product-type trends.",
+  "tables": ["forecast", "budget", "invoices", "invoice_doc_type", "products", "brands", "customers", "regions", "budget_rate", "exchange_rate"],
+  "chips": [
+    "How does the 2022 forecast compare with the 2022 budget by product type?",
+    "Which territories are furthest behind their forecast so far this year?",
+    "How are SpaceParts brands doing against private brands this year compared with last year?",
+    "Which brands are furthest behind budget this year?"
+  ]
+}

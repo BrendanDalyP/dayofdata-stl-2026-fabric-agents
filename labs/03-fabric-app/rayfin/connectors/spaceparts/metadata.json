@@ -1,0 +1,814 @@
+{
+  "source": "spaceparts",
+  "connector": "fabric-sqlanalytics",
+  "connectionString": "fhhjzyywk65ehmt5dpoy7vtzae-bc3wrksfpmaupk7qxqojdpq4le.datawarehouse.fabric.microsoft.com",
+  "discoveredAt": "2026-10-23T21:28:27.945Z",
+  "schemas": [
+    {
+      "schemaName": "SpaceParts",
+      "tables": [
+        {
+          "tableName": "brands",
+          "columns": [
+            {
+              "columnName": "flagship",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "class",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "type",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "brand",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "sub_brand",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "product_brand_vp",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            }
+          ]
+        },
+        {
+          "tableName": "budget",
+          "columns": [
+            {
+              "columnName": "month",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "total_budget",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "customer_key",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "product_key",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "dwcreateddate",
+              "dataType": "datetime2",
+              "isNullable": true,
+              "datePrecision": 6
+            }
+          ]
+        },
+        {
+          "tableName": "budget_rate",
+          "columns": [
+            {
+              "columnName": "rate",
+              "dataType": "decimal",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 5
+            },
+            {
+              "columnName": "from_currency",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "to_currency",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "currency_system",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            }
+          ]
+        },
+        {
+          "tableName": "customers",
+          "columns": [
+            {
+              "columnName": "customer_key",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "customer_soldto_name",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "account_name",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "key_account_name",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "transaction_type",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "account_type",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "key_account_manager",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "account_manager",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "station",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            }
+          ]
+        },
+        {
+          "tableName": "employees",
+          "columns": [
+            {
+              "columnName": "role",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "employee_name",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "employee_email",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "data_security_rule",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            }
+          ]
+        },
+        {
+          "tableName": "exchange_rate",
+          "columns": [
+            {
+              "columnName": "rate_type",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "from_currency",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "to_currency",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "currency_system",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "rate",
+              "dataType": "decimal",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 5
+            },
+            {
+              "columnName": "date",
+              "dataType": "datetime2",
+              "isNullable": true,
+              "datePrecision": 6
+            },
+            {
+              "columnName": "month",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "exchange_rate_composite_key",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            }
+          ]
+        },
+        {
+          "tableName": "forecast",
+          "columns": [
+            {
+              "columnName": "forecast_month",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "region_territory",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "product_type",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "forecast_eur",
+              "dataType": "decimal",
+              "isNullable": true,
+              "precision": 12,
+              "scale": 2
+            },
+            {
+              "columnName": "dwcreateddate",
+              "dataType": "datetime2",
+              "isNullable": true,
+              "datePrecision": 6
+            }
+          ]
+        },
+        {
+          "tableName": "invoice_doc_type",
+          "columns": [
+            {
+              "columnName": "billing_document_type_code",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "text",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "doc_type_ordinal",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "group",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "group_ordinal",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            }
+          ]
+        },
+        {
+          "tableName": "invoices",
+          "columns": [
+            {
+              "columnName": "billing_document_number",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "billing_date",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "customer_key",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "billing_document_line_item_number",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "product_key",
+              "dataType": "bigint",
+              "isNullable": true,
+              "precision": 19,
+              "scale": 0
+            },
+            {
+              "columnName": "ship_date",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "otd_indicator",
+              "dataType": "bit",
+              "isNullable": true
+            },
+            {
+              "columnName": "billing_document_type_code",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "local_currency",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "delivery_cost",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "net_invoice_cogs",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "late_delivery_penalties",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "overdue_payment_penalties",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "taxes__commercial_fees",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "freight",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "net_invoice_cost",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "net_invoice_value",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "net_invoice_quantity",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "dwcreateddate",
+              "dataType": "datetime2",
+              "isNullable": true,
+              "datePrecision": 6
+            }
+          ]
+        },
+        {
+          "tableName": "order_doc_type",
+          "columns": [
+            {
+              "columnName": "sales_order_document_type_code",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "text",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "doc_type_ordinal",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "group",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "group_ordinal",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            }
+          ]
+        },
+        {
+          "tableName": "order_status",
+          "columns": [
+            {
+              "columnName": "order_status_code",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "order_status_text",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "order_status_ordinal",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "order_status_group",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "order_status_grouping_ordinal",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            }
+          ]
+        },
+        {
+          "tableName": "orders",
+          "columns": [
+            {
+              "columnName": "sales_order_document_number",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "order_date",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "customer_key",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "sales_order_document_line_item_number",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "product_key",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "billing_date",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "ship_date",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "request_goods_receipt_date",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "confirm_goods_receipt_date",
+              "dataType": "date",
+              "isNullable": true,
+              "datePrecision": 0
+            },
+            {
+              "columnName": "sales_order_document_type_code",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "sales_order_document_line_item_status",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "local_currency",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "net_order_value",
+              "dataType": "float",
+              "isNullable": true,
+              "precision": 53
+            },
+            {
+              "columnName": "net_order_quantity",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "dwcreateddate",
+              "dataType": "datetime2",
+              "isNullable": true,
+              "datePrecision": 6
+            }
+          ]
+        },
+        {
+          "tableName": "products",
+          "columns": [
+            {
+              "columnName": "sub_brand_name",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "ship_class_for_part",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "product_name",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "product_business_line_leader",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "part_fit_grading",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "product_key",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "subtype",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "type",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "weight_tonnes",
+              "dataType": "decimal",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 5
+            },
+            {
+              "columnName": "maximum_temperature_k",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "velocity_tolerance_meters__second",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "tolerance_g",
+              "dataType": "int",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 0
+            },
+            {
+              "columnName": "mk",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "color",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "production_series",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "nameplate",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "material",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            }
+          ]
+        },
+        {
+          "tableName": "regions",
+          "columns": [
+            {
+              "columnName": "all",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "system",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "interplanetary_region",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "territory",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "station",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "station_type",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "tax_rate",
+              "dataType": "decimal",
+              "isNullable": true,
+              "precision": 10,
+              "scale": 5
+            },
+            {
+              "columnName": "system_sales_directors",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "station_sales_managers",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "system_regional_managers",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            },
+            {
+              "columnName": "territory_directors",
+              "dataType": "varchar",
+              "isNullable": true,
+              "maxLength": 8000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

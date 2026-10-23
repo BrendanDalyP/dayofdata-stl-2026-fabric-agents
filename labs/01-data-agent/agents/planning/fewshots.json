@@ -1,0 +1,18 @@
+[
+  {
+    "question": "How does the 2022 forecast compare with budget by month?",
+    "query": "WITH fc AS (SELECT forecast_month AS [month], SUM(forecast_eur) AS forecast_eur FROM SpaceParts.forecast GROUP BY forecast_month), bud AS (SELECT [month], SUM(total_budget) AS budget_eur FROM SpaceParts.budget WHERE [month] >= '2022-01-01' AND [month] < '2023-01-01' GROUP BY [month]) SELECT fc.[month], CAST(fc.forecast_eur AS decimal(18,0)) AS forecast_eur, CAST(bud.budget_eur AS decimal(18,0)) AS budget_eur, CAST(fc.forecast_eur - bud.budget_eur AS decimal(18,0)) AS gap_eur FROM fc JOIN bud ON bud.[month] = fc.[month] ORDER BY fc.[month]"
+  },
+  {
+    "question": "How are actual net sales tracking against forecast by product type so far this year?",
+    "query": "WITH fc AS (SELECT product_type, SUM(forecast_eur) AS forecast_eur FROM SpaceParts.forecast WHERE forecast_month >= '2022-01-01' AND forecast_month < '2022-08-01' GROUP BY product_type), act AS (SELECT p.[type] AS product_type, SUM(i.net_invoice_value / br.rate * er.rate) AS actual_eur FROM SpaceParts.invoices i JOIN SpaceParts.invoice_doc_type d ON d.billing_document_type_code = i.billing_document_type_code AND d.[group] = 'Invoice' JOIN SpaceParts.budget_rate br ON br.from_currency = i.local_currency JOIN SpaceParts.exchange_rate er ON er.from_currency = i.local_currency AND er.rate_type = 'Monthly Rate' AND CAST(er.[date] AS date) = i.billing_date JOIN SpaceParts.products p ON p.product_key = i.product_key WHERE i.billing_date >= '2022-01-01' AND i.billing_date < '2022-08-01' GROUP BY p.[type]) SELECT fc.product_type, CAST(COALESCE(act.actual_eur, 0) AS decimal(18,0)) AS actual_eur, CAST(fc.forecast_eur AS decimal(18,0)) AS forecast_eur, CAST(COALESCE(act.actual_eur, 0) - fc.forecast_eur AS decimal(18,0)) AS gap_eur, CAST(100.0 * (COALESCE(act.actual_eur, 0) / fc.forecast_eur - 1) AS decimal(9,1)) AS gap_pct FROM fc LEFT JOIN act ON act.product_type = fc.product_type ORDER BY gap_eur ASC"
+  },
+  {
+    "question": "Which sub-brands grew fastest against last year?",
+    "query": "WITH s AS (SELECT b.sub_brand, YEAR(i.billing_date) AS yr, SUM(i.net_invoice_value / br.rate * er.rate) AS net_sales_eur FROM SpaceParts.invoices i JOIN SpaceParts.invoice_doc_type d ON d.billing_document_type_code = i.billing_document_type_code AND d.[group] = 'Invoice' JOIN SpaceParts.budget_rate br ON br.from_currency = i.local_currency JOIN SpaceParts.exchange_rate er ON er.from_currency = i.local_currency AND er.rate_type = 'Monthly Rate' AND CAST(er.[date] AS date) = i.billing_date JOIN SpaceParts.products p ON p.product_key = i.product_key JOIN SpaceParts.brands b ON b.sub_brand = p.sub_brand_name WHERE (i.billing_date >= '2022-01-01' AND i.billing_date <= '2022-08-21') OR (i.billing_date >= '2021-01-01' AND i.billing_date <= '2021-08-21') GROUP BY b.sub_brand, YEAR(i.billing_date)) SELECT TOP 10 cy.sub_brand, CAST(cy.net_sales_eur AS decimal(18,0)) AS ytd_2022_eur, CAST(py.net_sales_eur AS decimal(18,0)) AS same_period_2021_eur, CAST(100.0 * (cy.net_sales_eur / py.net_sales_eur - 1) AS decimal(9,1)) AS growth_pct FROM s cy JOIN s py ON py.sub_brand = cy.sub_brand AND py.yr = 2021 WHERE cy.yr = 2022 ORDER BY growth_pct DESC"
+  },
+  {
+    "question": "What is the full-year 2022 forecast by interplanetary region?",
+    "query": "WITH t AS (SELECT DISTINCT territory, interplanetary_region FROM SpaceParts.regions) SELECT t.interplanetary_region, CAST(SUM(f.forecast_eur) AS decimal(18,0)) AS forecast_eur FROM SpaceParts.forecast f JOIN t ON t.territory = f.region_territory GROUP BY t.interplanetary_region ORDER BY forecast_eur DESC"
+  }
+]

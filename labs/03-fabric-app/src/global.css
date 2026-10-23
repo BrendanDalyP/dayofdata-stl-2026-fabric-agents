@@ -1,0 +1,214 @@
+@layer fabric-visual-tokens, theme, base, fabric-visuals, components, utilities;
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* These tokens are consumed directly as CSS variables, so emit them
+   even when no Tailwind utility references them. */
+@theme static {
+  --color-brand:            #0078d4;  /* branded surfaces - Microsoft blue */
+  --color-brand-foreground: #0062ad;  /* brand-colored content on standard surfaces */
+  --color-hover:            rgba(0, 0, 0, 0.04);  /* row/cell hover surface in DataGrid + visuals */
+  --color-emphasis-foreground: #111318;  /* page and visual titles, KPI values */
+  --font-page-title: var(--font-heading);
+  --font-page-subtitle: var(--font-base);
+  --font-visual-title: var(--font-heading);
+  --font-visual-subtitle: var(--font-base);
+  --font-data-label: var(--font-base);
+  --text-page-title: var(--text-600);
+  --text-page-subtitle: var(--text-300);
+  --text-visual-title: var(--text-400);
+  --text-visual-subtitle: var(--text-300);
+  --text-data-label: 11px;
+}
+
+@theme {
+  /* Color tokens — light theme
+     Usage: bg-*, text-*, border-* (e.g. bg-brand text-on-brand). */
+  --color-background: #f5f6f8;                                       /* page background */
+  --color-foreground: #1e2126;                                       /* default text */
+
+  --color-card: #ffffff;                                             /* card and elevated surfaces */
+
+  --color-on-brand: #ffffff;                                         /* text/icons on brand surfaces */
+
+  --color-muted: #eceef1;                                            /* subtle backgrounds */
+  --color-muted-foreground: #5b616b;                                 /* subdued text */
+
+  --color-accent: #fff7cc;                                           /* accent highlights */
+
+  --color-destructive: #b10e1c;                                      /* errors & destructive actions */
+  --color-destructive-foreground: #ffffff;
+
+  --color-success: #0e700e;                                          /* success surfaces */
+  --color-success-foreground: #ffffff;
+
+  --color-signal: #c9a400;                                           /* telemetry accent */
+
+  --color-border: #d9dce1;                                           /* default border */
+  --color-ring: #0078d4;                                             /* focus rings */
+
+  --shadow-container-2:  var(--shadow-xs);
+  --shadow-container-4:  var(--shadow-sm);
+  --shadow-container-8:  var(--shadow-md);
+  --shadow-container-16: var(--shadow-lg);
+
+  --radius-none: 0;
+  --radius-sm: calc(2px * var(--radius-scale, 1));
+  --radius-md: calc(4px * var(--radius-scale, 1));
+  --radius-lg: calc(6px * var(--radius-scale, 1));
+  --radius-xl: calc(8px * var(--radius-scale, 1));
+  --radius-2xl: calc(12px * var(--radius-scale, 1));
+  --radius-3xl: calc(16px * var(--radius-scale, 1));
+  --radius-4xl: calc(24px * var(--radius-scale, 1));
+  --radius-5xl: calc(32px * var(--radius-scale, 1));
+  --radius-6xl: calc(40px * var(--radius-scale, 1));
+  --radius-full: calc(9999px * var(--radius-scale, 1));
+  --radius: calc(6px * var(--radius-scale, 1));
+  --radius-scale: 0.75;
+
+  /* Spacing base unit
+     Usage: p-*, m-*, gap-* (e.g. p-4 gap-3) */
+  --spacing: 4px;
+
+  /* Font Sizes — 100-based scale 
+     Usage: text-* (e.g. text-300, text-hero-900) */
+  --text-100: 10px;
+  --text-200: 12px;
+  --text-300: 14px;
+  --text-400: 16px;
+  --text-500: 20px;
+  --text-600: 24px;
+  --text-hero-700: 28px;
+  --text-hero-800: 32px;
+  --text-hero-900: 40px;
+  --text-hero-1000: 68px;
+
+  /* Line Heights — paired with font sizes
+     Usage: leading-* (e.g. leading-300) */
+  --leading-100: 14px;
+  --leading-200: 16px;
+  --leading-300: 20px;
+  --leading-400: 22px;
+  --leading-500: 28px;
+  --leading-600: 32px;
+  --leading-hero-700: 36px;
+  --leading-hero-800: 40px;
+  --leading-hero-900: 52px;
+  --leading-hero-1000: 92px;
+
+  /* Font Weights
+     Usage: font-* (e.g. font-semibold) */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Font Families
+     Usage: font-* (e.g. font-heading, font-base) */
+  --font-heading: 'Noto Sans', 'Segoe UI', sans-serif;           /* headings, titles, display text */
+  --font-base: 'Noto Sans', 'Segoe UI', sans-serif;             /* body text, labels, UI controls */
+  --font-monospace: 'JetBrains Mono', Consolas, monospace;     /* code, pre-formatted text */
+  --font-numeric: 'JetBrains Mono', Bahnschrift, monospace;          /* KPI values, numeric displays */
+
+  /* Icon Sizes — 100-based scale
+     Usage: icon-size-* custom utility (e.g. icon-size-200) */
+  --icon-size-100: 12px;
+  --icon-size-200: 16px;
+  --icon-size-300: 20px;
+  --icon-size-400: 24px;
+  --icon-size-500: 28px;
+  --icon-size-600: 32px;
+  --icon-size-700: 48px;
+}
+
+@utility gap-grid {
+  gap: var(--grid-gap, calc(var(--spacing) * 4));
+}
+
+@utility icon-size-* {
+  width: --value(--icon-size-*);
+  height: --value(--icon-size-*);
+}
+
+@layer base {
+  .dark {
+    /* Color tokens — dark theme */
+    --color-background: #0b0b0b;
+    --color-foreground: #e6e8eb;
+
+    --color-card: #1e2126;
+
+    --color-on-brand: #ffffff;
+
+    --color-muted: #2a2e35;
+    --color-muted-foreground: #9aa0a9;
+
+    --color-accent: #3a3310;
+
+    --color-destructive: #dc626d;
+    --color-destructive-foreground: #ffffff;
+
+    --color-success: #54b054;
+    --color-success-foreground: #ffffff;
+
+    --color-signal: #f2c811;
+
+    --color-border: #343a42;
+    --color-ring: #f2c811;
+
+    --color-brand:            #0078d4;
+    --color-brand-foreground: #4da3ff;
+    --color-hover:            rgba(255, 255, 255, 0.09);
+    --color-emphasis-foreground: #ffffff;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+@layer base {
+  select, input, textarea, button { font-family: inherit; }
+}
+
+/* Star-field backdrop for the shell (dark mode only). */
+.starfield {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, color-mix(in oklab, var(--color-foreground) 55%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 34%, color-mix(in oklab, var(--color-foreground) 35%, transparent) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 38% 76%, color-mix(in oklab, var(--color-signal) 60%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 82%, color-mix(in oklab, var(--color-foreground) 40%, transparent) 50%, transparent 51%),
+    radial-gradient(1px 1px at 55% 8%, color-mix(in oklab, var(--color-foreground) 30%, transparent) 50%, transparent 51%);
+  background-size: 420px 420px;
+}
+:root:not(.dark) .starfield { background-image: none; }
+
+@keyframes trace-pulse { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
+.trace-pulse { animation: trace-pulse 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .trace-pulse { animation: none; } }
+
+.prose-answer table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: var(--text-200); }
+.prose-answer th, .prose-answer td { border-bottom: 1px solid var(--color-border); padding: 6px 8px; text-align: left; }
+.prose-answer th { color: var(--color-muted-foreground); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: var(--text-100); }
+.prose-answer td { font-family: var(--font-numeric); }
+.prose-answer p { margin: 6px 0; }
+.prose-answer ul, .prose-answer ol { margin: 6px 0 6px 18px; list-style: disc; }
+.prose-answer ol { list-style: decimal; }
+.prose-answer code { font-family: var(--font-monospace); font-size: .92em; background: var(--color-muted); padding: 1px 4px; border-radius: var(--radius-sm); }
+.prose-answer pre { background: var(--color-muted); padding: 10px; border-radius: var(--radius-md); overflow-x: auto; font-size: var(--text-200); }
+.prose-answer pre code { background: none; padding: 0; }
+.prose-answer strong { color: var(--color-emphasis-foreground); }

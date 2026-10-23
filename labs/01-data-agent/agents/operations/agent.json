@@ -1,0 +1,11 @@
+{
+  "name": "SpaceParts Operations",
+  "description": "Answers questions about SpaceParts Co. order backlog, overdue and cancelled orders, on-time delivery and delivery penalties, in euros, by region, key account and product type.",
+  "tables": ["orders", "order_status", "order_doc_type", "invoices", "invoice_doc_type", "customers", "regions", "products", "budget_rate", "exchange_rate"],
+  "chips": [
+    "What is the open order backlog in euros by order status?",
+    "What was the on-time delivery rate by month this year?",
+    "Which key accounts have the most overdue order value?",
+    "Which regions paid the most late-delivery penalties this year, in euros?"
+  ]
+}

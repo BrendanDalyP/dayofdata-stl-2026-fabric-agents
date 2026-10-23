@@ -1,0 +1,11 @@
+{
+  "name": "SpaceParts Sales Analyst",
+  "description": "Answers questions about SpaceParts Co. net sales and budget in euros: by region, key account, account manager, product type and brand, this year against budget and last year.",
+  "tables": ["invoices", "invoice_doc_type", "budget", "customers", "regions", "products", "budget_rate", "exchange_rate"],
+  "chips": [
+    "Which key accounts are furthest behind budget this year?",
+    "What were net sales in euros by region this year?",
+    "How did net sales grow against last year by product type?",
+    "Who are the top 5 account managers by net sales this year?"
+  ]
+}

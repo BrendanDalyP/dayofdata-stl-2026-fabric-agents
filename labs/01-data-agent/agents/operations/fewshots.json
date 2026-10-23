@@ -1,0 +1,18 @@
+[
+  {
+    "question": "What is the overdue order value in euros by region?",
+    "query": "SELECT r.interplanetary_region, COUNT_BIG(*) AS overdue_lines, CAST(SUM(o.net_order_value / br.rate * er.rate) AS decimal(18,0)) AS overdue_value_eur FROM SpaceParts.orders o JOIN SpaceParts.budget_rate br ON br.from_currency = o.local_currency JOIN SpaceParts.exchange_rate er ON er.from_currency = o.local_currency AND er.rate_type = 'Monthly Rate' AND CAST(er.[date] AS date) = o.order_date JOIN SpaceParts.customers c ON c.customer_key = o.customer_key JOIN SpaceParts.regions r ON r.station = c.station WHERE o.sales_order_document_line_item_status = 'Overdue' GROUP BY r.interplanetary_region ORDER BY overdue_value_eur DESC"
+  },
+  {
+    "question": "What was the on-time delivery rate by product type this year?",
+    "query": "SELECT p.[type] AS product_type, CAST(100.0 * AVG(CASE WHEN i.otd_indicator = 1 THEN 1.0 ELSE 0.0 END) AS decimal(5,1)) AS on_time_pct, COUNT_BIG(*) AS invoice_lines FROM SpaceParts.invoices i JOIN SpaceParts.invoice_doc_type d ON d.billing_document_type_code = i.billing_document_type_code AND d.[group] = 'Invoice' JOIN SpaceParts.products p ON p.product_key = i.product_key WHERE i.billing_date >= '2022-01-01' GROUP BY p.[type] ORDER BY on_time_pct ASC"
+  },
+  {
+    "question": "Which key accounts were charged the most overdue-payment penalties this year?",
+    "query": "SELECT TOP 10 c.key_account_name, CAST(SUM(i.overdue_payment_penalties / br.rate * er.rate) AS decimal(18,0)) AS overdue_payment_penalties_eur FROM SpaceParts.invoices i JOIN SpaceParts.invoice_doc_type d ON d.billing_document_type_code = i.billing_document_type_code AND d.[group] = 'Invoice' JOIN SpaceParts.budget_rate br ON br.from_currency = i.local_currency JOIN SpaceParts.exchange_rate er ON er.from_currency = i.local_currency AND er.rate_type = 'Monthly Rate' AND CAST(er.[date] AS date) = i.billing_date JOIN SpaceParts.customers c ON c.customer_key = i.customer_key WHERE c.account_type = 'Key Account' AND i.billing_date >= '2022-01-01' GROUP BY c.key_account_name ORDER BY overdue_payment_penalties_eur DESC"
+  },
+  {
+    "question": "How many order lines were cancelled each month this year?",
+    "query": "SELECT DATEFROMPARTS(YEAR(o.order_date), MONTH(o.order_date), 1) AS [month], COUNT_BIG(*) AS cancelled_lines FROM SpaceParts.orders o JOIN SpaceParts.order_status os ON os.order_status_code = o.sales_order_document_line_item_status WHERE os.order_status_group = 'Cancelled' AND o.order_date >= '2022-01-01' GROUP BY DATEFROMPARTS(YEAR(o.order_date), MONTH(o.order_date), 1) ORDER BY [month]"
+  }
+]
