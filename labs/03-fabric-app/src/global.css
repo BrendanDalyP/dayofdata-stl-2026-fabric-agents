@@ -219,3 +219,24 @@ body,
 :root { --ink-muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --gap-neutral: #f0efec; }
 .dark { --grid: #2c2c2a; --axis: #383835; --gap-neutral: #383835; }
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Midnight theme: deep navy surfaces (selected palette, validated against #111c2e). */
+.dark[data-theme="midnight"] {
+  --color-background: #0a1120;
+  --color-card: #111c2e;
+  --color-muted: #18253b;
+  --color-muted-foreground: #a3b2c9;
+  --color-foreground: #e4eaf3;
+  --color-emphasis-foreground: #ffffff;
+  --color-border: #22324d;
+  --color-accent: #17305a;
+  --color-brand: #4f93ec;
+  --color-brand-foreground: #8fbaf3;
+  --color-ring: #4f93ec;
+  --grid: #1f2e47;
+  --axis: #2c3f5e;
+  --gap-neutral: #2a3a55;
+}
+/* Brand header band stays navy in every theme. */
+.brand-band { background: #0e1a2e; color: #ffffff; border-color: #0e1a2e; }
+.dark[data-theme="midnight"] .brand-band { background: #070d18; border-color: #22324d; }

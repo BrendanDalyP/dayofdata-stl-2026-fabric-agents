@@ -134,8 +134,12 @@ function check(d: CommandData, rows: number) {
     if (ok) console.info(`✔ ${msg}`); else console.warn(`✖ ${msg}`);
 }
 
-export const eur = (v: number, compact = false) =>
-    new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: compact ? 1 : 0, notation: compact ? "compact" : "standard" }).format(v);
+/** €1,234,567 — or compact: €9.03bn / €214.5m / €850k. */
+export const eur = (v: number, compact = false) => {
+    if (!compact) return new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+    const a = Math.abs(v), sign = v < 0 ? "−" : "";
+    return a >= 1e9 ? `${sign}€${(a / 1e9).toFixed(2)}bn` : a >= 1e6 ? `${sign}€${(a / 1e6).toFixed(1)}m` : a >= 1e3 ? `${sign}€${(a / 1e3).toFixed(0)}k` : `${sign}€${a.toFixed(0)}`;
+};
 
 export const pct = (v: number, signed = false) => `${signed && v > 0 ? "+" : ""}${v.toFixed(1)}%`;
 export const gapPct = (s: { actualYtd: number; budgetYtd: number }) => (s.actualYtd / s.budgetYtd - 1) * 100;

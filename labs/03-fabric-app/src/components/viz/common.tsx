@@ -29,7 +29,9 @@ export const statusOf = (gapPct: number): StatusKey => (gapPct >= 0 ? "good" : g
 /** Diverging fill for a gap %: red ↔ grey ↔ blue, clamped at ±max. */
 export function gapColor(gapPct: number, max = 15) {
     const t = Math.max(-1, Math.min(1, gapPct / max));
-    return t < 0 ? d3.interpolateRgb(C.neutral, C.below)(-t * 0.9) : d3.interpolateRgb(C.neutral, C.above)(t * 0.9);
+    const root = typeof document !== "undefined" ? document.documentElement : undefined;
+    const neutral = root?.classList.contains("dark") ? (root.dataset.theme === "midnight" ? "#2a3a55" : "#383835") : C.neutral;
+    return t < 0 ? d3.interpolateRgb(neutral, C.below)(-t * 0.9) : d3.interpolateRgb(neutral, C.above)(t * 0.9);
 }
 
 /** Width and height of a container, kept in sync with ResizeObserver. */

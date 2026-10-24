@@ -21,12 +21,15 @@ export function Card({ title, subtitle, actions, children, className, bodyClassN
     );
 }
 
-/** Small text button that hands a question to an agent. */
-export function AskLink({ label, onClick, color }: { label: string; onClick: () => void; color: string }) {
+/** Button that hands a question to a named agent: "● Sales · Which accounts drive this?". */
+export function AskLink({ label, onClick, color, agent }: { label: string; onClick: () => void; color: string; agent?: string }) {
     return (
-        <button type="button" onClick={onClick}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-0.5 text-200 text-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <span aria-hidden className="inline-block size-2 rounded-full" style={{ background: color }} />{label}
+        <button type="button" onClick={onClick} title={agent ? `Ask the ${agent} agent` : undefined}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-200 text-foreground shadow-container-2 transition hover:border-brand hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <span aria-hidden className="inline-block size-2 rounded-full" style={{ background: color }} />
+            {agent && <span className="font-semibold">{agent}</span>}
+            {agent && <span aria-hidden className="text-muted-foreground">·</span>}
+            <span>{label}</span>
         </button>
     );
 }

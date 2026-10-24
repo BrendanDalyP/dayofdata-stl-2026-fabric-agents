@@ -99,10 +99,10 @@ function AccountDetail({ a }: { a: Subject }) {
     };
     const Btn = ({ k, label, icon: Icon, fn, primary }: { k: string; label: string; icon: typeof Flag; fn: () => Promise<unknown>; primary?: boolean }) => (
         <button type="button" disabled={saved[k] === "busy" || saved[k] === "done"} onClick={() => void run(k, fn)} title={saved[k]?.startsWith("Failed") ? saved[k] : "Runs a Rayfin function"}
-            className={cn("inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            className={cn("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 saved[k] === "done" ? "border border-border text-success" : primary ? "bg-brand text-on-brand hover:opacity-90" : "border border-border text-foreground hover:bg-muted",
                 saved[k] === "busy" && "trace-pulse")}>
-            {saved[k] === "done" ? <Check className="icon-size-200" /> : <Icon className="icon-size-200" />}{saved[k] === "done" ? `${label} — saved` : label}
+            {saved[k] === "done" ? <Check className="icon-size-100" /> : <Icon className="icon-size-100" />}{saved[k] === "done" ? `${label} — saved` : label}
         </button>
     );
 
@@ -131,20 +131,26 @@ function AccountDetail({ a }: { a: Subject }) {
 
             {/* trend + recovery maths */}
             <div className="grid min-h-0 grid-cols-12 gap-3">
-                <Card className="col-span-8" title="Monthly net sales vs budget" subtitle="2021 – Aug 2022 · red bars missed budget · click a month to ask">
+                <Card className="col-span-8" title="Monthly net sales vs budget" subtitle="2021 – Aug 2022 · red bars missed budget · click a month to ask"
+                        actions={<>
+                            <AskLink agent={sales.tag} color={sales.color} label="Which months missed?" onClick={() => ask(`Which months did the key account ${a.name} miss budget this year, and by how much?`, "sales", a.name)} />
+                            <AskLink agent={ops.tag} color={ops.color} label="Backlog" onClick={() => ask(`What is the open order backlog for the key account ${a.name}, in euros?`, "operations", a.name)} />
+                        </>}>
                     <AccountTrend data={a.monthly} onSelect={(m) => ask(`How did the key account ${a.name} do against budget in ${m.month.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}?`, "sales", `${a.name} · ${m.month.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })}`)} />
                 </Card>
-                <Card className="col-span-4" title="To land the full-year budget" subtitle={`Aug–Dec · ${MONTHS_REMAINING} months`} bodyClassName="flex flex-col justify-between gap-2 overflow-y-auto">
-                    {planResult ? <PlanCard plan={planResult} onAsk={(q, to, ctx) => ask(q, to, ctx)} /> : (
+                <Card className="col-span-4" title="To land the full-year budget" subtitle={`Aug–Dec · ${MONTHS_REMAINING} months left`} bodyClassName="flex flex-col gap-3">
+                    {planResult ? <div className="min-h-0 flex-1 overflow-y-auto"><PlanCard plan={planResult} onAsk={(q, to, ctx) => ask(q, to, ctx)} /></div> : (
                         <>
-                            <dl className="space-y-2">
-                                <div><dt className="text-100 text-muted-foreground">Needed per month</dt><dd className="tabular text-500 font-semibold text-emphasis-foreground">{fmtEurShort(needed)}</dd></div>
-                                <div><dt className="text-100 text-muted-foreground">Budget per month</dt><dd className="tabular text-300 text-foreground">{fmtEurShort(budgetMonthly)}</dd></div>
-                                <div><dt className="text-100 text-muted-foreground">Uplift on budget run-rate</dt><dd className="tabular text-400 font-semibold" style={{ color: uplift > 0 ? C.below : C.above }}>{pct(uplift, true)}</dd></div>
+                            <dl className="grid grid-cols-1 gap-2.5">
+                                <div className="flex items-baseline justify-between gap-2"><dt className="text-200 text-muted-foreground">Needed per month</dt><dd className="tabular text-500 font-semibold text-emphasis-foreground">{fmtEurShort(needed)}</dd></div>
+                                <div className="flex items-baseline justify-between gap-2"><dt className="text-200 text-muted-foreground">Budget per month</dt><dd className="tabular text-300 text-foreground">{fmtEurShort(budgetMonthly)}</dd></div>
+                                <div className="flex items-baseline justify-between gap-2"><dt className="text-200 text-muted-foreground">Uplift on budget run-rate</dt><dd className="tabular text-400 font-semibold" style={{ color: uplift > 0 ? C.below : C.above }}>{pct(uplift, true)}</dd></div>
                             </dl>
-                            {g < 0
-                                ? <Btn k="plan" label="Save recovery plan" icon={LifeBuoy} primary fn={() => buildRecoveryPlan(a, "sales")} />
-                                : <p className="text-200 text-muted-foreground">Ahead of budget — no recovery needed.</p>}
+                            <div className="mt-auto">
+                                {g < 0
+                                    ? <Btn k="plan" label="Save recovery plan" icon={LifeBuoy} primary fn={() => buildRecoveryPlan(a, "sales")} />
+                                    : <p className="text-200 text-muted-foreground">Ahead of budget — no recovery needed.</p>}
+                            </div>
                         </>
                     )}
                 </Card>
@@ -155,11 +161,11 @@ function AccountDetail({ a }: { a: Subject }) {
                 <AgentBrief className="col-span-8" agent="sales" context={a.name}
                     title={`What's driving ${a.name}?`}
                     question={`How is the key account ${a.name} doing against budget this year, and which months and product types drive the gap?`} />
-                <Card className="col-span-4" title="Ask the team" subtitle="Hand this account to another agent" bodyClassName="flex flex-col gap-1.5">
-                    <AskLink color={ops.color} label="Overdue & late orders" onClick={() => ask(`Which overdue or late orders does the key account ${a.name} have, in euros?`, "operations", a.name)} />
-                    <AskLink color={ops.color} label="Late-delivery penalties" onClick={() => ask(`How much in late-delivery penalties did ${a.name} receive this year, in euros?`, "operations", a.name)} />
-                    <AskLink color={plan.color} label="Does the forecast assume a miss?" onClick={() => ask(`Does the 2022 forecast already assume ${a.name} misses budget?`, "planning", a.name)} />
-                    <AskLink color={sales.color} label="Growth vs last year" onClick={() => ask(`How did net sales for the key account ${a.name} grow against the same period last year?`, "sales", a.name)} />
+                <Card className="col-span-4" title="Ask the team" subtitle="Hand this account to another agent" bodyClassName="flex flex-col items-start gap-2">
+                    <AskLink agent={ops.tag} color={ops.color} label="Overdue & late orders" onClick={() => ask(`Which overdue or late orders does the key account ${a.name} have, in euros?`, "operations", a.name)} />
+                    <AskLink agent={ops.tag} color={ops.color} label="Late-delivery penalties" onClick={() => ask(`How much in late-delivery penalties did ${a.name} receive this year, in euros?`, "operations", a.name)} />
+                    <AskLink agent={plan.tag} color={plan.color} label="Forecast assumes a miss?" onClick={() => ask(`Does the 2022 forecast already assume ${a.name} misses budget?`, "planning", a.name)} />
+                    <AskLink agent={sales.tag} color={sales.color} label="Growth vs last year" onClick={() => ask(`How did net sales for the key account ${a.name} grow against the same period last year?`, "sales", a.name)} />
                 </Card>
             </div>
         </div>

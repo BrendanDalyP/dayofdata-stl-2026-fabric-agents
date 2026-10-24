@@ -18,6 +18,9 @@ import { bootstrapAuth } from './services/rayfin-auth.service';
 import { AuthGate } from './components/auth-gate.component';
 
 import "./global.css"
+import { initTheme } from "./components/ThemeMenu";
+
+initTheme();
 
 const rayfinAuthService = bootstrapAuth();
 
