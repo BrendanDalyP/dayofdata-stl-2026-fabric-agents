@@ -257,7 +257,11 @@ function AnswerCard({ turn, reply, data, focus, onRun, onAsk }: {
         <div className="rounded-xl border border-border bg-background/50 p-3.5" style={{ borderLeft: `3px solid ${color}` }}>
             <div className="mb-1.5 flex items-center justify-between gap-2">
                 <span className="font-monospace text-100 font-semibold uppercase tracking-widest" style={{ color }}>▶ {member.tag}</span>
-                {reply.result && <span className="font-monospace text-100 text-muted-foreground" title="via MCP">{(reply.result.totalMs / 1000).toFixed(1)}s</span>}
+                {reply.result && (
+                    <span className="font-monospace text-100 text-muted-foreground" title="via the agent's MCP endpoint">
+                        answered as {reply.result.identity === "service principal" ? "service principal" : "the app"} · {(reply.result.totalMs / 1000).toFixed(1)}s
+                    </span>
+                )}
             </div>
 
             {reply.error ? (

@@ -1,4 +1,4 @@
-# Lab 02 — Connecting to the agent from outside Fabric
+# Lab 02 — Call the agents over MCP
 
 **Goal:** call each published data agent from a script over its **MCP endpoint**. That endpoint is the whole integration surface: anything that speaks MCP — a script, VS Code, your app's backend — can use the agent team.
 
@@ -30,9 +30,9 @@ Agent URLs come from `../01-data-agent/published-agents.json`. Expect 30–60 se
 
 `test_agent_mcp.py` is the whole protocol: get a token for `https://api.fabric.microsoft.com/.default`, open a streamable-HTTP MCP session, `initialize`, list the tools (there is one — the agent), call it with the question, print the text. The agent's answer is markdown text and tables; the endpoint keeps no conversation state, so each question stands alone. The Rayfin function in Lab 03 (`data-agent.ts`) is the same four messages in TypeScript.
 
-## 4. Optional: call as an app registration (service principal)
+## 4. Optional: least privilege with a service principal
 
-You only need this if the app should run queries as its own narrowly-scoped identity instead of a user or the Rayfin app identity.
+**Not needed for the demo app** — it calls the agents as the Rayfin app identity (the app item's owner) with no app registration. Add a service principal only when the app should query with its own, narrowly scoped permissions instead of the owner's. Test it in your tenant first: Microsoft's pages disagree on service-principal support for querying agents.
 
 ### Which identity calls the agent?
 

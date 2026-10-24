@@ -70,14 +70,14 @@ answer + buttons ◀───┘
    Invoke-RestMethod -Method Post -Headers @{Authorization="Bearer $t"} -ContentType application/json `
      -Uri "https://api.fabric.microsoft.com/v1/workspaces/<ws>/items/<app item id>/move" -Body '{"targetFolderId":"<folder id>"}'
    ```
-7. **Choose the identity.** With no secrets set, the function uses Rayfin's **app identity** — the owner of the app item — and every user's question runs with the owner's permissions. To use the Lab 02 app registration instead:
+7. **Identity.** The app calls the agents as Rayfin's **app identity** (`ctx.Tokens.Fabric` — the owner of the app item), with no app registration; answers read **answered as the app**. Every user's question runs with the owner's permissions. *Optional, for least privilege:* use a service principal from Lab 02 §4 instead:
    ```powershell
    npx rayfin secret set AGENT_TENANT_ID
    npx rayfin secret set AGENT_CLIENT_ID
    npx rayfin secret set AGENT_CLIENT_SECRET
    npx rayfin secret list        # names, never values
    ```
-   Each answer shows **answered as app identity** or **answered as service principal**.
+   Answers then read **answered as service principal**.
 8. **Share:** give users *Run and interact* on the app item, and (because the connector is delegated) read access to the lakehouse.
 
 ## Offline fallback
