@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { sourceDetail } from "@/lib/sources";
 
 /**
  * Flat hairline card whose body fills the remaining height (for no-scroll grid layouts).
@@ -21,7 +22,7 @@ export function Card({ title, subtitle, actions, children, className, bodyClassN
                 </header>
             )}
             <div className={cn("min-h-0 flex-1 overflow-hidden", bodyClassName)}>{children}</div>
-            {source && <p className="mt-1.5 shrink-0 truncate text-100 text-muted-foreground">Source: {source}</p>}
+            {source && <p tabIndex={0} title={typeof source === "string" ? sourceDetail(source) : undefined} className="mt-1.5 shrink-0 cursor-help truncate text-100 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">Source: {source}</p>}
         </section>
     );
 }

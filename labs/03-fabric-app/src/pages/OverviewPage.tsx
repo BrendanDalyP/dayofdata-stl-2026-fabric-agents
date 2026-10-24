@@ -6,6 +6,7 @@ import { memberByKey } from "@/agent/team";
 import { AgentBrief } from "@/components/AgentBrief";
 import { Card, Skeleton } from "@/components/Card";
 import { Ask, Kpi } from "@/components/Kpi";
+import { AnswerLine } from "@/components/AnswerLine";
 import { BudgetColumns } from "@/components/viz/BudgetColumns";
 import { RegionGaps } from "@/components/viz/RegionGaps";
 import { Sparkline } from "@/components/viz/Sparkline";
@@ -39,15 +40,17 @@ export function OverviewPage() {
     const open = (actions ?? []).filter((a) => a.status === "open").sort((a, b) => order[a.priority] - order[b.priority]).slice(0, 5);
 
     return (
-        <div className="grid h-full min-h-0 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:h-auto max-[1100px]:grid-rows-none">
+        <div className="flex h-full min-h-0 flex-col gap-3 max-[1100px]:h-auto">
+            <AnswerLine question="Are we on budget?" source="app.sales_vs_budget" answer={k?.worstAcct && `${k.gap >= 0 ? "Yes, overall" : "No"}: net sales are ${pct(k.gap, true)} against budget Jan–Jul 2022, ${k.gap >= 0 ? "but" : "and"} ${k.behind} of ${data!.accounts.length} key accounts trail it, led by ${k.worstAcct.name} (${eur(k.worstAcct.actualYtd - k.worstAcct.budgetYtd, true)}).`} />
+            <div className="grid min-h-0 flex-1 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:flex-none max-[1100px]:grid-rows-none">
             {/* KPIs — each with the agent who can explain it */}
             <div className="col-span-12 grid grid-cols-5 gap-3 max-[1100px]:grid-cols-2">
-                <Kpi label="Net sales, 2022 to date" value={k && eur(k.net22, true)} note={`monthly, to ${DATA_END_LABEL}`}
+                <Kpi source="app.sales_vs_budget" label="Net sales, 2022 to date" value={k && eur(k.net22, true)} note={`monthly, to ${DATA_END_LABEL}`}
                     spark={k && <Sparkline kind="columns" partialLast values={k.y22.map((m) => m.net)} color={C.series} />}
                     ask={<Ask agent="sales" label="By region" q="What were net sales in euros by region this year?" />} />
-                <Kpi label="Against budget, Jan–Jul" value={k && pct(k.gap, true)} tone={k && k.gap < 0 ? "bad" : "good"} note="complete months"
+                <Kpi source="app.sales_vs_budget" label="Against budget, Jan–Jul" value={k && pct(k.gap, true)} tone={k && k.gap < 0 ? "bad" : "good"} note="complete months"
                     ask={<Ask agent="sales" label="What drives it?" q="Which key accounts and regions drive net sales against budget this year?" />} />
-                <Kpi label="Key accounts behind budget" value={k && `${k.behind} of ${data!.accounts.length}`} tone={k && k.behind ? "bad" : undefined}
+                <Kpi source="app.sales_vs_budget" label="Key accounts behind budget" value={k && `${k.behind} of ${data!.accounts.length}`} tone={k && k.behind ? "bad" : undefined}
                     onClick={() => navigate("accounts")}
                     note={k && (
                         <span className="flex gap-2.5">
@@ -57,10 +60,10 @@ export function OverviewPage() {
                         </span>
                     )}
                     ask={<Ask agent="sales" label="Who and why?" q="Which key accounts are furthest behind budget this year?" />} />
-                <Kpi label="On-time delivery, Aug 2022" value={k?.otd.length ? pct(k.otd.at(-1)!.onTimePct) : undefined} tone="bad" note="share of invoice lines on time"
+                <Kpi source="app.delivery_by_month" label="On-time delivery, Aug 2022" value={k?.otd.length ? pct(k.otd.at(-1)!.onTimePct) : undefined} tone="bad" note="share of invoice lines on time"
                     spark={k && <Sparkline values={k.otd.map((d) => d.onTimePct)} color={memberByKey("operations").color} />}
                     ask={<Ask agent="operations" label="Trend" q="What was the on-time delivery rate by month this year?" />} />
-                <Kpi label="2022 forecast vs budget" value={k && pct((k.fc / k.fb - 1) * 100, true)} tone={k && k.fc < k.fb ? "bad" : "good"} note={k && `${eur(k.fc, true)} forecast · ${eur(k.fb, true)} budget`}
+                <Kpi source="app.forecast_vs_budget" label="2022 forecast vs budget" value={k && pct((k.fc / k.fb - 1) * 100, true)} tone={k && k.fc < k.fb ? "bad" : "good"} note={k && `${eur(k.fc, true)} forecast · ${eur(k.fb, true)} budget`}
                     ask={<Ask agent="planning" label="By product" q="How does the 2022 forecast compare with the 2022 budget by product type?" />} />
             </div>
 
@@ -126,6 +129,7 @@ export function OverviewPage() {
                     </ul>
                 )}
             </Card>
+        </div>
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useAsk, type Target } from "@/agent/AskContext";
 import { memberByKey, type AgentKey } from "@/agent/team";
 import { AskLink } from "@/components/Card";
 import { cn } from "@/lib/utils";
+import { sourceDetail } from "@/lib/sources";
 
 /** An ask chip for a given agent. */
 export function Ask({ agent, label, q, ctx }: { agent: AgentKey; label: string; q: string; ctx?: string }) {
@@ -13,14 +14,16 @@ export function Ask({ agent, label, q, ctx }: { agent: AgentKey; label: string; 
 }
 
 /** A KPI tile: label, hero value, note, optional sparkline and the agent who can explain it. */
-export function Kpi({ label, value, note, tone, spark, ask, onClick }: {
+export function Kpi({ label, value, note, tone, spark, ask, onClick, source }: {
     label: string; value?: string; note?: ReactNode; tone?: "bad" | "good"; spark?: ReactNode; ask?: ReactNode; onClick?: () => void;
+    /** The app.* table behind the number; shown on hover with the rules applied. */
+    source?: string;
 }) {
     return (
         <div className={cn("flex h-full flex-col rounded-lg border border-border bg-card px-4 py-3", onClick && "cursor-pointer hover:border-brand")} onClick={onClick}>
             <div className="text-200 font-semibold text-muted-foreground">{label}</div>
             <div className="mt-1 flex items-end justify-between gap-2">
-                <div className={cn("font-heading text-hero-800 font-semibold leading-hero-800 tracking-tight", tone === "bad" ? "text-destructive" : "text-emphasis-foreground")}>
+                <div title={source ? sourceDetail(source) : undefined} className={cn("font-heading text-hero-800 font-semibold leading-hero-800 tracking-tight", source && "cursor-help", tone === "bad" ? "text-destructive" : "text-emphasis-foreground")}>
                     {value ?? <span className="inline-block h-8 w-28 rounded bg-muted trace-pulse" />}
                 </div>
                 {spark}

@@ -5,6 +5,7 @@ import { useAsk } from "@/agent/AskContext";
 import { AgentBrief } from "@/components/AgentBrief";
 import { Card, Skeleton } from "@/components/Card";
 import { Ask, Kpi } from "@/components/Kpi";
+import { AnswerLine } from "@/components/AnswerLine";
 import { ForecastMonthly, type PlanMonth } from "@/components/viz/ForecastMonthly";
 import { GapBars, type GapRow } from "@/components/viz/GapBars";
 import { fmtEurShort } from "@/components/viz/common";
@@ -92,17 +93,19 @@ export function PlanPage() {
     };
 
     return (
-        <div className="grid h-full min-h-0 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:h-auto max-[1100px]:grid-rows-none">
+        <div className="flex h-full min-h-0 flex-col gap-3 max-[1100px]:h-auto">
+            <AnswerLine question="Is the forecast credible?" source="app.forecast_vs_budget, app.territory_vs_forecast" answer={k && `${k.fc < k.bud ? "Not yet" : "Yes"}: the 2022 forecast is ${pct(gap(k.fc, k.bud), true)} against budget, actuals run ${pct(gap(k.actYtd, k.fcYtd), true)} against forecast Jan–Jul, and ${k.terrBehind} of ${k.terrCount} territories trail it.`} />
+            <div className="grid min-h-0 flex-1 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:flex-none max-[1100px]:grid-rows-none">
             <div className="col-span-12 grid grid-cols-5 gap-3 max-[1100px]:grid-cols-2">
-                <Kpi label="2022 forecast vs budget" value={k && pct(gap(k.fc, k.bud), true)} tone={k && k.fc < k.bud ? "bad" : "good"} note={k && `${eur(k.fc, true)} forecast · ${eur(k.bud, true)} budget`}
+                <Kpi source="app.forecast_vs_budget" label="2022 forecast vs budget" value={k && pct(gap(k.fc, k.bud), true)} tone={k && k.fc < k.bud ? "bad" : "good"} note={k && `${eur(k.fc, true)} forecast · ${eur(k.bud, true)} budget`}
                     ask={<Ask agent="planning" label="By product" q="How does the 2022 forecast compare with the 2022 budget by product type?" />} />
-                <Kpi label="Actual vs forecast, Jan–Jul" value={k && pct(gap(k.actYtd, k.fcYtd), true)} tone={k && k.actYtd < k.fcYtd ? "bad" : "good"} note={k && `${eur(k.actYtd, true)} actual · ${eur(k.fcYtd, true)} forecast`}
+                <Kpi source="app.territory_vs_forecast" label="Actual vs forecast, Jan–Jul" value={k && pct(gap(k.actYtd, k.fcYtd), true)} tone={k && k.actYtd < k.fcYtd ? "bad" : "good"} note={k && `${eur(k.actYtd, true)} actual · ${eur(k.fcYtd, true)} forecast`}
                     ask={<Ask agent="planning" label="Where?" q="Which territories are furthest behind their forecast so far this year?" />} />
-                <Kpi label="Territories behind forecast" value={k && `${k.terrBehind} of ${k.terrCount}`} tone={k && k.terrBehind ? "bad" : undefined} note="Jan–Jul 2022, actual vs forecast"
+                <Kpi source="app.territory_vs_forecast" label="Territories behind forecast" value={k && `${k.terrBehind} of ${k.terrCount}`} tone={k && k.terrBehind ? "bad" : undefined} note="Jan–Jul 2022, actual vs forecast"
                     ask={<Ask agent="planning" label="Worst five" q="Which territories are furthest behind their forecast so far this year?" />} />
-                <Kpi label="Brands behind budget" value={k && `${k.brandsBehind} of ${k.brandRows.length}`} tone={k && k.brandsBehind ? "bad" : "good"} note="Jan–Jul 2022"
+                <Kpi source="app.brand_vs_budget" label="Brands behind budget" value={k && `${k.brandsBehind} of ${k.brandRows.length}`} tone={k && k.brandsBehind ? "bad" : "good"} note="Jan–Jul 2022"
                     ask={<Ask agent="planning" label="Which?" q="Which brands are furthest behind budget this year?" />} />
-                <Kpi label="SpaceParts brands, growth" value={k && pct(k.ownGrowth, true)} note={k && `private brands ${pct(k.privGrowth, true)} · Jan–Jul vs 2021`}
+                <Kpi source="app.brand_vs_budget" label="SpaceParts brands, growth" value={k && pct(k.ownGrowth, true)} note={k && `private brands ${pct(k.privGrowth, true)} · Jan–Jul vs 2021`}
                     ask={<Ask agent="planning" label="Own vs private" q="How are SpaceParts brands doing against private brands this year compared with last year?" />} />
             </div>
 
@@ -141,6 +144,7 @@ export function PlanPage() {
             <AgentBrief className="col-span-4 max-[1100px]:col-span-12" agent="planning"
                 title="Is the forecast realistic?"
                 question="How does the 2022 forecast compare with budget by product type, and which territories are furthest behind their forecast so far this year?" />
+        </div>
         </div>
     );
 }

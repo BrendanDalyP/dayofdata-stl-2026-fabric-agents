@@ -6,6 +6,7 @@ import { memberByKey } from "@/agent/team";
 import { AgentBrief } from "@/components/AgentBrief";
 import { PlanCard } from "@/components/AgentAnswer";
 import { AskLink, Card, Skeleton } from "@/components/Card";
+import { AnswerLine } from "@/components/AnswerLine";
 import { BudgetColumns } from "@/components/viz/BudgetColumns";
 import { VarianceHeatmap } from "@/components/viz/VarianceHeatmap";
 import { GapStrip } from "@/components/viz/GapStrip";
@@ -28,6 +29,14 @@ export function AccountsPage({ selected }: { selected?: string }) {
     if (dataError) return <p role="alert" className="rounded-lg border border-destructive/40 bg-card p-4 text-300 text-destructive">Couldn't read the lakehouse: {dataError}</p>;
     if (!data) return <Skeleton />;
 
+    const crit = accounts.filter((a) => statusOf(gapPct(a)) === "critical");
+    const watch = accounts.filter((a) => statusOf(gapPct(a)) === "warning");
+    const names = (l: typeof accounts) => l.map((a) => a.name).join(l.length > 2 ? ", " : " and ");
+    const answer = (
+        <AnswerLine question="Which accounts need action?" source="app.sales_vs_budget"
+            answer={`${crit.length} need action now and ${watch.length} are on watch: ${names(crit)} ${crit.length === 1 ? "is" : "are"} more than 5% below budget Jan–Jul 2022.`} />
+    );
+
     const toggle = (
         <div className="flex rounded-md border border-border p-0.5" role="tablist" aria-label="View">
             {(["list", "heatmap"] as const).map((v) => (
@@ -39,17 +48,22 @@ export function AccountsPage({ selected }: { selected?: string }) {
 
     if (view === "heatmap") {
         return (
-            <Card className="h-full" title="Key accounts × month, 2022" subtitle="Net sales vs budget · click a row to open the account, a cell to ask about that month" actions={toggle}>
+            <div className="flex h-full min-h-0 flex-col gap-3">
+            {answer}
+            <Card className="min-h-0 flex-1" title="Key accounts × month, 2022" subtitle="Net sales vs budget · click a row to open the account, a cell to ask about that month" actions={toggle}>
                 <VarianceHeatmap cells={data.accountCells} subjects={data.accounts} focus={current?.name}
                     onSelect={(s, m) => m
                         ? ask(`How did the key account ${s.name} do against budget in ${m.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}?`, "sales", `${s.name} · ${m.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })}`)
                         : (setView("list"), navigate("accounts", s.name))} />
             </Card>
+            </div>
         );
     }
 
     return (
-        <div className="grid h-full min-h-0 grid-cols-12 gap-3 max-[1100px]:h-auto">
+        <div className="flex h-full min-h-0 flex-col gap-3 max-[1100px]:h-auto">
+        {answer}
+        <div className="grid min-h-0 flex-1 grid-cols-12 gap-3 max-[1100px]:flex-none">
             {/* master list */}
             <Card className="col-span-4 max-[1100px]:col-span-12" title="Key accounts" subtitle={`${accounts.length} accounts · Jan–Jul 2022 vs budget`} actions={toggle} bodyClassName="overflow-y-auto -mx-2">
                 <div className="grid grid-cols-[16px_1fr_84px_60px] gap-2 px-2 pb-1 text-100 font-semibold uppercase tracking-wide text-muted-foreground">
@@ -85,6 +99,7 @@ export function AccountsPage({ selected }: { selected?: string }) {
 
             {/* detail */}
             {current && <AccountDetail key={current.name} a={current} />}
+        </div>
         </div>
     );
 }

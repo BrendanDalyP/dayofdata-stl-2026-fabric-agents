@@ -4,6 +4,7 @@ import { CircleCheck, Eye, Flag, LifeBuoy, RotateCcw, Siren } from "lucide-react
 import { useAsk } from "@/agent/AskContext";
 import { colorOf, memberByKey, type AgentKey } from "@/agent/team";
 import { Skeleton } from "@/components/Card";
+import { AnswerLine } from "@/components/AnswerLine";
 import { STATUS, fmtEurShort } from "@/components/viz/common";
 import { setActionStatus, type ActionKind, type ActionRow } from "@/services/actions";
 import { navigate } from "@/lib/nav";
@@ -41,8 +42,16 @@ export function ActionsPage() {
                 active ? "border-brand bg-accent font-semibold text-emphasis-foreground" : "border-border text-muted-foreground hover:text-foreground")}>{children}</button>
     );
 
+    const openItems = actions.filter((a) => a.status === "open");
+    const high = openItems.filter((a) => a.priority === "high");
+    const done = actions.length - openItems.length;
+
     return (
         <div className="flex h-full min-h-0 flex-col gap-3">
+            <AnswerLine question="What are we doing about it?" source="the app's own database (ActionItem), written by Rayfin functions"
+                answer={openItems.length
+                    ? `${openItems.length} open action${openItems.length === 1 ? "" : "s"}, ${high.length} high priority${high[0] ? `, led by "${high[0].title}"` : ""}; ${done} done.`
+                    : "Nothing open yet. Ask an agent, then use the action buttons under its answer."} />
             <div className="flex flex-wrap items-center gap-2">
                 <h1 className="mr-2 font-heading text-500 font-semibold text-emphasis-foreground">Action board</h1>
                 <Chip active={agent === "all"} onClick={() => setAgent("all")}>All agents</Chip>

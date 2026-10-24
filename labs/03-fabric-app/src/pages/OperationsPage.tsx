@@ -6,6 +6,7 @@ import { memberByKey } from "@/agent/team";
 import { AgentBrief } from "@/components/AgentBrief";
 import { Card, Skeleton } from "@/components/Card";
 import { Ask, Kpi } from "@/components/Kpi";
+import { AnswerLine } from "@/components/AnswerLine";
 import { BacklogByRegion, STATUS_FILL } from "@/components/viz/BacklogByRegion";
 import { DeliveryMultiples } from "@/components/viz/DeliveryMultiples";
 import { Sparkline } from "@/components/viz/Sparkline";
@@ -59,19 +60,21 @@ export function OperationsPage() {
     const maxCancel = k?.cancels[0]?.pct ?? 1;
 
     return (
-        <div className="grid h-full min-h-0 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:h-auto max-[1100px]:grid-rows-none">
+        <div className="flex h-full min-h-0 flex-col gap-3 max-[1100px]:h-auto">
+            <AnswerLine question="What's holding revenue back?" source="app.order_backlog, app.delivery_by_region" answer={k && first && last && `${eur(k.overdue, true)} of orders are overdue (${pct((100 * k.overdue) / k.total)} of the open book), and on-time delivery ${last.onTimePct < first.onTimePct ? "fell" : "rose"} to ${pct(last.onTimePct)} by August.`} />
+            <div className="grid min-h-0 flex-1 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:flex-none max-[1100px]:grid-rows-none">
             <div className="col-span-12 grid grid-cols-5 gap-3 max-[1100px]:grid-cols-2">
-                <Kpi label="Open order book" value={k && eur(k.total, true)} note={k && `${k.lines.toLocaleString()} order lines · all open statuses`}
+                <Kpi source="app.order_backlog" label="Open order book" value={k && eur(k.total, true)} note={k && `${k.lines.toLocaleString()} order lines · all open statuses`}
                     ask={<Ask agent="operations" label="By status" q="What is the open order backlog in euros by order status?" />} />
-                <Kpi label="Overdue orders" value={k && eur(k.overdue, true)} tone="bad" note={k && `${pct((100 * k.overdue) / k.total)} of the open order book`}
+                <Kpi source="app.order_backlog" label="Overdue orders" value={k && eur(k.overdue, true)} tone="bad" note={k && `${pct((100 * k.overdue) / k.total)} of the open order book`}
                     ask={<Ask agent="operations" label="Which accounts?" q="Which key accounts have the most overdue order value?" />} />
-                <Kpi label="On-time delivery, Aug 2022" value={last && pct(last.onTimePct)} tone={last && first && last.onTimePct < first.onTimePct ? "bad" : undefined}
+                <Kpi source="app.delivery_by_region" label="On-time delivery, Aug 2022" value={last && pct(last.onTimePct)} tone={last && first && last.onTimePct < first.onTimePct ? "bad" : undefined}
                     note={first && `${pct(first.onTimePct)} in January · to 21 Aug`}
                     spark={k && <Sparkline values={k.months.map((m) => m.onTimePct)} color={ops.color} />}
                     ask={<Ask agent="operations" label="Trend" q="What was the on-time delivery rate by month this year?" />} />
-                <Kpi label="Late-delivery penalties, 2022" value={k && eur(k.penalties, true)} tone="bad" note={k && `most in ${k.penByRegion[0][0].replace(" Region", "")} (${fmtEurShort(k.penByRegion[0][1])})`}
+                <Kpi source="app.delivery_by_region" label="Late-delivery penalties, 2022" value={k && eur(k.penalties, true)} tone="bad" note={k && `most in ${k.penByRegion[0][0].replace(" Region", "")} (${fmtEurShort(k.penByRegion[0][1])})`}
                     ask={<Ask agent="operations" label="Which regions?" q="Which regions paid the most late-delivery penalties this year, in euros?" />} />
-                <Kpi label="Order value cancelled, 2022" value={k && pct(k.cancelPct)} note={k && `highest: ${k.cancels[0].productType} ${pct(k.cancels[0].pct)}`}
+                <Kpi source="app.cancellations_by_type" label="Order value cancelled, 2022" value={k && pct(k.cancelPct)} note={k && `highest: ${k.cancels[0].productType} ${pct(k.cancels[0].pct)}`}
                     ask={<Ask agent="operations" label="By product" q="What share of order value was cancelled this year, by product type?" />} />
             </div>
 
@@ -147,6 +150,7 @@ export function OperationsPage() {
             <AgentBrief className="col-span-4 max-[1100px]:col-span-12" agent="operations"
                 title="What's stuck in the order book?"
                 question="Which key accounts and regions have the most overdue order value, and how has on-time delivery changed this year?" />
+        </div>
         </div>
     );
 }
