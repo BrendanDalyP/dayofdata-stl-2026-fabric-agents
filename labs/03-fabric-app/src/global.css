@@ -7,8 +7,8 @@
 /* These tokens are consumed directly as CSS variables, so emit them
    even when no Tailwind utility references them. */
 @theme static {
-  --color-brand:            #0078d4;  /* branded surfaces - Microsoft blue */
-  --color-brand-foreground: #0062ad;  /* brand-colored content on standard surfaces */
+  --color-brand:            #0f9f80;  /* branded surfaces - mint */
+  --color-brand-foreground: #0b7d65;  /* brand-colored content on standard surfaces */
   --color-hover:            rgba(0, 0, 0, 0.04);  /* row/cell hover surface in DataGrid + visuals */
   --color-emphasis-foreground: #111318;  /* page and visual titles, KPI values */
   --font-page-title: var(--font-heading);
@@ -44,10 +44,10 @@
   --color-success: #0e700e;                                          /* success surfaces */
   --color-success-foreground: #ffffff;
 
-  --color-signal: #c9a400;                                           /* telemetry accent */
+  --color-signal: #7c3aed;                                           /* telemetry accent */
 
   --color-border: #d9dce1;                                           /* default border */
-  --color-ring: #0078d4;                                             /* focus rings */
+  --color-ring: #0f9f80;                                             /* focus rings */
 
   --shadow-container-2:  var(--shadow-xs);
   --shadow-container-4:  var(--shadow-sm);
@@ -107,8 +107,8 @@
 
   /* Font Families
      Usage: font-* (e.g. font-heading, font-base) */
-  --font-heading: 'Noto Sans', 'Segoe UI', sans-serif;           /* headings, titles, display text */
-  --font-base: 'Noto Sans', 'Segoe UI', sans-serif;             /* body text, labels, UI controls */
+  --font-heading: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;           /* headings, titles, display text */
+  --font-base: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;             /* body text, labels, UI controls */
   --font-monospace: 'JetBrains Mono', Consolas, monospace;     /* code, pre-formatted text */
   --font-numeric: 'JetBrains Mono', Bahnschrift, monospace;          /* KPI values, numeric displays */
 
@@ -135,31 +135,31 @@
 @layer base {
   .dark {
     /* Color tokens — dark theme */
-    --color-background: #0b0b0b;
-    --color-foreground: #e6e8eb;
+    --color-background: #070a10;
+    --color-foreground: #c9d3e2;
 
-    --color-card: #1e2126;
+    --color-card: #0e1420;
 
-    --color-on-brand: #ffffff;
+    --color-on-brand: #04130e;
 
-    --color-muted: #2a2e35;
-    --color-muted-foreground: #9aa0a9;
+    --color-muted: #141c2b;
+    --color-muted-foreground: #7f8ca3;
 
-    --color-accent: #3a3310;
+    --color-accent: #0f2a25;
 
-    --color-destructive: #dc626d;
+    --color-destructive: #f87171;
     --color-destructive-foreground: #ffffff;
 
-    --color-success: #54b054;
+    --color-success: #34d399;
     --color-success-foreground: #ffffff;
 
-    --color-signal: #f2c811;
+    --color-signal: #a78bfa;
 
-    --color-border: #343a42;
-    --color-ring: #f2c811;
+    --color-border: #1e2a3c;
+    --color-ring: #2dd4a7;
 
-    --color-brand:            #0078d4;
-    --color-brand-foreground: #4da3ff;
+    --color-brand:            #2dd4a7;
+    --color-brand-foreground: #5eead4;
     --color-hover:            rgba(255, 255, 255, 0.09);
     --color-emphasis-foreground: #ffffff;
   }
@@ -212,3 +212,13 @@ body,
 .prose-answer pre { background: var(--color-muted); padding: 10px; border-radius: var(--radius-md); overflow-x: auto; font-size: var(--text-200); }
 .prose-answer pre code { background: none; padding: 0; }
 .prose-answer strong { color: var(--color-emphasis-foreground); }
+
+/* Glass panels (command center look): translucent card over a soft gradient. */
+.dark body {
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(45, 212, 167, 0.07), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(167, 139, 250, 0.06), transparent 60%),
+    var(--color-background);
+  background-attachment: fixed;
+}
+.dark .glass { background: rgba(14, 20, 32, 0.78); backdrop-filter: blur(10px); }

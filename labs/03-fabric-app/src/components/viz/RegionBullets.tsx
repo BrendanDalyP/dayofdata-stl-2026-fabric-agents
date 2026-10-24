@@ -33,7 +33,7 @@ export function RegionBullets({ regions, focus, onSelect }: { regions: Subject[]
                                 <rect x={0} y={4} width={x(r.budgetYtd * 1.1)} height={rowH - 8} className="fill-muted" rx={2} />
                                 <rect x={0} y={4} width={x(r.budgetYtd)} height={rowH - 8} className="fill-muted" opacity={0.9} rx={2} />
                                 <rect x={0} y={4} width={x(r.budgetYtd * 0.9)} height={rowH - 8} className="fill-border" opacity={0.6} rx={2} />
-                                <rect x={0} y={8} width={x(r.actualYtd)} height={rowH - 16} fill={g < 0 ? C.red : C.blue} rx={1} />
+                                <rect x={0} y={8} width={x(r.actualYtd)} height={rowH - 16} fill={g < 0 ? C.red : C.green} rx={1} />
                                 <line x1={x(r.budgetYtd)} x2={x(r.budgetYtd)} y1={3} y2={rowH - 3} stroke={C.yellow} strokeWidth={2.5} />
                                 <text x={width - labelW - 4} y={rowH / 2 + 3} textAnchor="end"
                                     className={g < 0 ? "fill-destructive font-numeric text-100" : "fill-brand-foreground font-numeric text-100"}>

@@ -93,7 +93,7 @@ export function VarianceHeatmap({ cells, subjects, focus, onSelect }: Props) {
                             <g transform={`translate(${labelW + gridW + 8},0)`}>
                                 <line x1={xBar(0)} x2={xBar(0)} y1={y} y2={y + rowH - 2} className="stroke-border" />
                                 <rect x={Math.min(xBar(0), xBar(gap))} y={y + 6} width={Math.abs(xBar(gap) - xBar(0))} height={rowH - 14} rx={2}
-                                    fill={gap < 0 ? C.red : C.blue} />
+                                    fill={gap < 0 ? C.red : C.green} />
                                 <text x={gap < 0 ? xBar(0) + 4 : xBar(0) - 4} y={y + rowH / 2 + 3} textAnchor={gap < 0 ? "start" : "end"}
                                     className="fill-muted-foreground font-numeric text-100">
                                     {fmtEurShort(gap)}

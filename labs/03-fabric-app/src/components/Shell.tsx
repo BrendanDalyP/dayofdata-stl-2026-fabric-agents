@@ -10,7 +10,7 @@ export function Shell({ children }: { children: ReactNode }) {
     const { isDark, toggleTheme } = useThemeContext();
     return (
         <div className="min-h-full bg-background">
-            <header className="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur">
+            <header className="glass sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur">
                 <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2 md:px-6">
                     <div className="flex items-center gap-2">
                         <span className="flex icon-size-600 items-center justify-center rounded-lg bg-brand text-on-brand">
@@ -18,7 +18,7 @@ export function Shell({ children }: { children: ReactNode }) {
                         </span>
                         <div className="leading-tight">
                             <div className="font-heading text-400 font-bold text-emphasis-foreground">SpaceParts Co.</div>
-                            <div className="font-monospace text-100 uppercase tracking-widest text-muted-foreground">Business command center</div>
+                            <div className="text-200 text-muted-foreground">Business command center · <span className="font-semibold text-brand-foreground">Microsoft Fabric</span></div>
                         </div>
                     </div>
                     <div className="hidden flex-1 items-center gap-4 font-monospace text-100 text-muted-foreground lg:flex">
@@ -30,8 +30,11 @@ export function Shell({ children }: { children: ReactNode }) {
                         </span>
                         <span className="flex items-center gap-1"><Zap className="icon-size-100 text-brand-foreground" /> actions · Rayfin functions</span>
                     </div>
+                    <span className="ml-auto hidden items-center gap-1.5 rounded-lg border border-brand/50 bg-brand/10 px-3 py-1.5 text-200 font-semibold text-brand-foreground sm:flex">
+                        <span aria-hidden>◆</span> Live on OneLake
+                    </span>
                     <button type="button" onClick={toggleTheme} aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-                        className="ml-auto flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-200 text-muted-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-200 text-muted-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                         {isDark ? <Sun className="icon-size-200" /> : <Moon className="icon-size-200" />}
                     </button>
                 </div>

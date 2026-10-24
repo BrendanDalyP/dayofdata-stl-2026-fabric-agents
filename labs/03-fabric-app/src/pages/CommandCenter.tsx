@@ -70,6 +70,8 @@ export function CommandCenter() {
                         onAsk={() => ask("How does the 2022 forecast compare with the 2022 budget by product type?", "planning")} agent="planning" />
                 </div>
 
+                {data && <StatusMix accounts={data.accounts} onAsk={ask} />}
+
                 <Panel title="Where we're missing budget" subtitle="Key account × month, 2022 · colour = net sales vs budget · bars = gap Jan–Jul · click a row or cell to ask"
                     loading={!data} asks={[["Which key accounts are furthest behind budget this year?", "sales"], ["Which key accounts have the most overdue order value?", "operations"]]} onAsk={ask}>
                     {data && (
@@ -115,12 +117,37 @@ export function CommandCenter() {
     );
 }
 
+/** Key accounts by status against budget (Jan–Jul): on track ≥ 0%, at-watch 0 to −5%, critical below −5%. */
+function StatusMix({ accounts, onAsk }: { accounts: CommandData["accounts"]; onAsk: (q: string, a: Target) => void }) {
+    const g = (a: CommandData["accounts"][number]) => (a.actualYtd / a.budgetYtd - 1) * 100;
+    const groups = [
+        { label: "on track", color: "#2dd4a7", items: accounts.filter((a) => g(a) >= 0) },
+        { label: "at-watch", color: "#f5c542", items: accounts.filter((a) => g(a) < 0 && g(a) >= -5) },
+        { label: "critical", color: "#f87171", items: accounts.filter((a) => g(a) < -5) },
+    ];
+    return (
+        <div className="glass flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-border bg-card px-4 py-2.5">
+            <span className="font-monospace text-100 uppercase tracking-[0.14em] text-muted-foreground">Key accounts · status mix</span>
+            {groups.map((grp) => (
+                <button key={grp.label} type="button" disabled={!grp.items.length}
+                    onClick={() => onAsk(`Which key accounts are ${grp.label === "on track" ? "ahead of" : "behind"} budget this year, and by how much? (${grp.items.map((i) => i.name).join(", ")})`, "sales")}
+                    title={grp.items.map((i) => `${i.name} ${g(i).toFixed(1)}%`).join(" · ")}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 py-1 text-200 text-foreground hover:bg-muted disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <span className="inline-block size-2.5 rounded-sm" style={{ background: grp.color }} />
+                    <span className="font-numeric font-semibold text-emphasis-foreground">{grp.items.length}</span> {grp.label}
+                </button>
+            ))}
+            <span className="ml-auto text-100 text-muted-foreground">Jan–Jul 2022 vs budget · click to ask the Sales Analyst</span>
+        </div>
+    );
+}
+
 function Kpi({ label, value, note, bad, spark, onAsk, agent }: {
     label: string; value?: string; note?: string; bad?: boolean; spark?: ReactNode; onAsk: () => void; agent: AgentKey;
 }) {
     const Icon = AGENT_ICON[agent];
     return (
-        <div className="flex flex-col rounded-xl border border-border bg-card p-3 shadow-container-2">
+        <div className="glass flex flex-col rounded-2xl border border-border bg-card p-3 shadow-container-4">
             <div className="font-monospace text-100 uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
             <div className="mt-1 flex items-end justify-between gap-2">
                 <div className={cn("font-numeric text-hero-700 font-semibold leading-hero-700", bad ? "text-destructive" : "text-emphasis-foreground")}>
@@ -143,7 +170,7 @@ function Panel({ title, subtitle, children, loading, asks, onAsk }: {
     asks: Array<[string, AgentKey]>; onAsk: (q: string, a: Target) => void;
 }) {
     return (
-        <section className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-container-2">
+        <section className="glass min-w-0 rounded-2xl border border-border bg-card p-4 shadow-container-4">
             <header className="mb-2 flex flex-wrap items-start justify-between gap-2">
                 <div>
                     <h2 className="font-heading text-visual-title font-semibold text-emphasis-foreground">{title}</h2>

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
-    ArrowUp, Check, CircleCheck, ClipboardList, Eye, Flag, LifeBuoy, RotateCcw, Siren, Target, TrendingUp, Truck, Users, Zap,
+    ArrowRight, ArrowUp, Check, CircleCheck, ClipboardList, Eye, Flag, LifeBuoy, RotateCcw, Siren, Target, TrendingUp, Truck, Users,
 } from "lucide-react";
 
 import { askAgent, type AgentAnswer } from "@/agent";
-import { TEAM, colorOf, memberByKey, type AgentKey } from "@/agent/team";
+import { TEAM, TEAM_COLOR, colorOf, memberByKey, type AgentKey } from "@/agent/team";
 import { RichAnswer } from "@/components/answer/RichAnswer";
 import { buildRecoveryPlan, createAction, listActions, setActionStatus, type ActionRow } from "@/services/actions";
 import { eur, pct, type CommandData, type Subject } from "@/queries/overview";
@@ -94,67 +94,74 @@ export function AgentConsole({ data, pending, focus }: Props) {
     }
 
     const open = actions?.filter((a) => a.status === "open").length ?? 0;
-    const chips = target === "team"
-        ? ["How is Government Contract doing?", "What should leadership worry about this month?"]
-        : memberByKey(target).chips;
+    const member = target === "team" ? undefined : memberByKey(target);
+    const accent = colorOf(target);
+    const chips = member ? member.chips : ["How is the key account Government Contract doing?", "What should leadership worry about this month?"];
 
     return (
-        <div className="flex h-full min-h-0 flex-col rounded-xl border border-brand/40 bg-card shadow-container-8">
+        <div className="glass flex h-full min-h-0 flex-col rounded-2xl border border-border bg-card shadow-container-16">
             {/* header */}
-            <div className="border-b border-border p-3">
-                <div className="mb-2 flex items-center justify-between">
+            <div className="p-4 pb-3">
+                <div className="flex items-start justify-between gap-2">
                     <div>
-                        <div className="font-monospace text-100 uppercase tracking-[0.2em] text-signal">Agent team · over MCP</div>
-                        <div className="font-heading text-400 font-semibold text-emphasis-foreground">Ask · decide · act</div>
+                        <h2 className="flex items-center gap-2 font-heading text-500 font-bold text-emphasis-foreground">
+                            <span aria-hidden className="text-brand">◆</span> Data Agent Team
+                        </h2>
+                        <p className="text-200 text-brand-foreground">3 role-scoped agents · one copy in OneLake</p>
                     </div>
-                    <div className="flex rounded-lg border border-border p-0.5" role="tablist">
-                        {(["chat", "actions"] as const).map((t) => (
-                            <button key={t} role="tab" aria-selected={tab === t} type="button" onClick={() => setTab(t)}
-                                className={cn("flex items-center gap-1 rounded-md px-2.5 py-1 text-200 capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                                    tab === t ? "bg-muted text-emphasis-foreground" : "text-muted-foreground hover:text-foreground")}>
-                                {t === "actions" ? <ClipboardList className="icon-size-100" /> : <Zap className="icon-size-100" />}
-                                {t === "actions" ? `Actions${open ? ` · ${open}` : ""}` : "Chat"}
-                            </button>
-                        ))}
-                    </div>
+                    <button type="button" onClick={() => setTab(tab === "chat" ? "actions" : "chat")}
+                        className={cn("flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            tab === "actions" ? "border-brand bg-brand text-on-brand" : "border-border text-foreground hover:bg-muted")}>
+                        <ClipboardList className="icon-size-200" /> Actions{open ? ` · ${open}` : ""}
+                    </button>
                 </div>
-                <div role="radiogroup" aria-label="Choose an agent" className="grid grid-cols-4 gap-1">
+
+                <div role="radiogroup" aria-label="Choose an agent" className="mt-3 flex flex-wrap gap-1.5">
                     {([...TEAM.map((m) => m.key), "team"] as Target[]).map((k) => {
-                        const Icon = ICON[k];
-                        const active = target === k;
+                        const active = target === k && tab === "chat";
                         const col = colorOf(k);
                         return (
-                            <button key={k} type="button" role="radio" aria-checked={active} onClick={() => setTarget(k)}
-                                style={active ? { borderColor: col, background: `${col}22` } : { borderTop: `3px solid ${col}` }}
-                                className={cn("flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5 text-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                                    active ? "text-emphasis-foreground" : "border-border text-muted-foreground hover:bg-muted")}>
-                                <Icon className="icon-size-200" aria-hidden style={{ color: col }} />
-                                <span className="font-semibold">{k === "team" ? "Whole team" : memberByKey(k).name}</span>
+                            <button key={k} type="button" role="radio" aria-checked={active} onClick={() => { setTarget(k); setTab("chat"); }}
+                                style={active ? { background: col, borderColor: col, color: "#04130e" } : undefined}
+                                className={cn("flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-200 font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                    !active && "border-border text-muted-foreground hover:text-foreground")}>
+                                {active ? <span aria-hidden>▶</span> : <span aria-hidden className="inline-block size-2 rounded-full" style={{ background: col }} />}
+                                {k === "team" ? "Whole team" : memberByKey(k).tag}
                             </button>
                         );
                     })}
                 </div>
+
+                {tab === "chat" && (
+                    <div className="mt-3">
+                        <p className="text-300 leading-400 text-foreground">
+                            <span className="font-semibold" style={{ color: accent }}>{member ? `${member.name} Agent` : "The whole team"}</span>
+                            {" — "}{member ? member.role : "one question, three agents, answers side by side"}
+                        </p>
+                        <p className="mt-0.5 font-monospace text-100 text-muted-foreground">
+                            grounded on {(member ? member.grounded : ["SpaceParts lakehouse"]).join(" · ")}
+                        </p>
+                    </div>
+                )}
             </div>
 
             {tab === "chat" ? (
                 <>
-                    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3" aria-live="polite">
+                    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-3" aria-live="polite">
                         {turns.length === 0 && (
                             <div className="space-y-2">
-                                <p className="text-200 text-muted-foreground">
-                                    Click any row or bar in the visuals, or pick a question. Answers come with action buttons that run Rayfin functions.
-                                </p>
                                 {chips.map((q) => (
                                     <button key={q} type="button" onClick={() => void ask(q, target)}
-                                        className="block w-full rounded-lg border border-border px-3 py-2 text-left text-200 text-foreground hover:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                        className="block w-full rounded-xl border border-border bg-background/40 px-3.5 py-2.5 text-left text-300 text-emphasis-foreground transition hover:border-brand/70 hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                                         {q}
                                     </button>
                                 ))}
+                                <p className="pt-1 text-200 text-muted-foreground">Or click a row or bar in the visuals.</p>
                             </div>
                         )}
                         {turns.map((turn) => (
                             <article key={turn.id} className="space-y-2">
-                                <p className="ml-auto max-w-[90%] rounded-xl rounded-br-sm bg-brand px-3 py-1.5 text-200 text-on-brand">{turn.question}</p>
+                                <p className="ml-auto w-fit max-w-[90%] rounded-xl rounded-br-sm border border-border bg-muted px-3 py-1.5 text-300 text-emphasis-foreground">{turn.question}</p>
                                 {turn.replies.map((reply) => (
                                     <AnswerCard key={reply.agent} turn={turn} reply={reply} data={data} focus={focus} onRun={runAction} onAsk={ask} />
                                 ))}
@@ -162,16 +169,17 @@ export function AgentConsole({ data, pending, focus }: Props) {
                         ))}
                         <div ref={endRef} />
                     </div>
-                    <form className="border-t border-border p-2" onSubmit={(e: FormEvent) => { e.preventDefault(); void ask(input, target); }}>
-                        <div className="flex items-end gap-2 rounded-xl border border-border bg-background p-1.5 focus-within:border-brand">
+                    <form className="border-t border-border p-3" onSubmit={(e: FormEvent) => { e.preventDefault(); void ask(input, target); }}>
+                        <div className="flex items-end gap-2 rounded-xl border border-border bg-background/60 p-1.5 focus-within:border-brand">
                             <label htmlFor="console-q" className="sr-only">Ask the agent team</label>
                             <textarea id="console-q" rows={1} value={input} disabled={busy}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void ask(input, target); } }}
-                                placeholder={`Ask ${target === "team" ? "the whole team" : memberByKey(target).name}…`}
+                                placeholder={`Ask ${member ? member.name : "the whole team"}…`}
                                 className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-2 py-1.5 text-300 text-foreground placeholder:text-muted-foreground focus:outline-none" />
                             <button type="submit" disabled={busy || !input.trim()} aria-label="Send"
-                                className="flex icon-size-600 items-center justify-center rounded-lg bg-brand text-on-brand disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                style={{ background: accent }}
+                                className="flex icon-size-600 items-center justify-center rounded-lg text-[#04130e] disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                                 <ArrowUp className="icon-size-200" />
                             </button>
                             {turns.length > 0 && (
@@ -190,17 +198,17 @@ export function AgentConsole({ data, pending, focus }: Props) {
     );
 }
 
-// ── answers and their actions ───────────────────────────────────────────────
+// ── answers ─────────────────────────────────────────────────────────────────
 
 function findSubjects(text: string, data?: CommandData): Subject[] {
     if (!data) return [];
     const lower = text.toLowerCase();
-    const hits = [...data.accounts, ...data.regions]
+    return [...data.accounts, ...data.regions]
         .map((s) => ({ s, at: lower.indexOf(s.name.toLowerCase()) }))
         .filter((h) => h.at >= 0)
         .sort((a, b) => a.at - b.at)
-        .map((h) => h.s);
-    return hits.slice(0, 2);
+        .map((h) => h.s)
+        .slice(0, 2);
 }
 
 function AnswerCard({ turn, reply, data, focus, onRun, onAsk }: {
@@ -209,76 +217,100 @@ function AnswerCard({ turn, reply, data, focus, onRun, onAsk }: {
     onAsk: (q: string, to: Target) => void;
 }) {
     const member = memberByKey(reply.agent);
-    const Icon = ICON[reply.agent];
     const color = member.color;
-    const entities = data ? [...data.accounts.map((a) => a.name), ...data.regions.map((r) => r.name), ...data.forecast.map((f) => f.productType)] : [];
     const text = reply.result?.answer ?? "";
+    const entities = data ? [...data.accounts.map((a) => a.name), ...data.regions.map((r) => r.name), ...data.forecast.map((f) => f.productType)] : [];
     let subjects = findSubjects(text + " " + turn.question, data);
     if (!subjects.length && focus && data) {
         const f = [...data.accounts, ...data.regions].find((s) => s.name === focus);
         if (f) subjects = [f];
     }
+    const lead = subjects[0];
     const summary = text.split("\n").find((l) => l.trim() && !l.startsWith("|"))?.replace(/[*_#]/g, "").slice(0, 300);
+    const sources = member.grounded.filter((t) => text.toLowerCase().includes(t.replace(/_/g, " ")) || text.includes(t));
+    const sourceList = (sources.length ? sources : member.grounded.slice(0, 3)).join(" · ");
 
-    type Btn = { key: string; label: string; icon: typeof Flag; run: () => Promise<unknown>; tone?: "primary" };
+    // Functions the answer can trigger
+    type Btn = { key: string; label: string; icon: typeof Flag; run: () => Promise<unknown>; primary?: boolean };
     const buttons: Btn[] = [];
     for (const s of subjects) {
         const short = s.name.replace(" Region", "");
-        if (reply.agent === "sales") {
-            if (s.actualYtd < s.budgetYtd) buttons.push({ key: `plan:${s.name}`, label: `Recovery plan · ${short}`, icon: LifeBuoy, tone: "primary", run: () => buildRecoveryPlan(s, "sales") });
-            buttons.push({ key: `fu:${s.name}`, label: `Follow up · ${short}`, icon: Flag, run: () => createAction({ kind: "follow-up", title: `Follow up with ${s.name}`, subject: s.name, detail: summary, agent: "sales", sourceQuestion: turn.question }) });
-        }
-        if (reply.agent === "operations") {
-            buttons.push({ key: `esc:${s.name}`, label: `Escalate orders · ${short}`, icon: Siren, tone: "primary", run: () => createAction({ kind: "escalation", title: `Escalate overdue orders · ${s.name}`, subject: s.name, detail: summary, agent: "operations", sourceQuestion: turn.question }) });
-        }
+        if (reply.agent === "sales" && s.actualYtd < s.budgetYtd) buttons.push({ key: `plan:${s.name}`, label: `Recovery plan · ${short}`, icon: LifeBuoy, primary: true, run: () => buildRecoveryPlan(s, "sales") });
+        if (reply.agent === "operations") buttons.push({ key: `esc:${s.name}`, label: `Escalate orders · ${short}`, icon: Siren, primary: true, run: () => createAction({ kind: "escalation", title: `Escalate overdue orders · ${s.name}`, subject: s.name, detail: summary, agent: "operations", sourceQuestion: turn.question }) });
+        if (reply.agent === "sales") buttons.push({ key: `fu:${s.name}`, label: `Follow up · ${short}`, icon: Flag, run: () => createAction({ kind: "follow-up", title: `Follow up with ${s.name}`, subject: s.name, detail: summary, agent: "sales", sourceQuestion: turn.question }) });
         buttons.push({ key: `watch:${s.name}`, label: `Watch · ${short}`, icon: Eye, run: () => createAction({ kind: "watch", title: `Watch ${s.name}`, subject: s.name, detail: summary, agent: reply.agent, sourceQuestion: turn.question }) });
     }
     if (reply.agent === "planning" && data) {
         const pt = data.forecast.find((f) => text.includes(f.productType) && f.forecast < f.budget);
-        if (pt) buttons.push({ key: `fc:${pt.productType}`, label: `Flag forecast gap · ${pt.productType}`, icon: Flag, tone: "primary", run: () => createAction({ kind: "follow-up", title: `Forecast below budget · ${pt.productType}`, subject: pt.productType, detail: summary, agent: "planning", sourceQuestion: turn.question }) });
+        if (pt) buttons.push({ key: `fc:${pt.productType}`, label: `Flag forecast gap · ${pt.productType}`, icon: Flag, primary: true, run: () => createAction({ kind: "follow-up", title: `Forecast below budget · ${pt.productType}`, subject: pt.productType, detail: summary, agent: "planning", sourceQuestion: turn.question }) });
     }
     if (!buttons.length && reply.result) {
         buttons.push({ key: "save", label: "Add to action board", icon: ClipboardList, run: () => createAction({ kind: "follow-up", title: turn.question.slice(0, 190), detail: summary, agent: reply.agent, sourceQuestion: turn.question }) });
     }
 
+    // Suggested hand-offs to the other agents
+    const handoffs = member.handoffs
+        .filter((h) => !h.label.includes("{subject}") || lead)
+        .map((h) => ({ ...h, label: h.label.replace("{subject}", lead?.name ?? ""), question: h.question.replace("{subject}", lead?.name ?? "") }));
+
     return (
-        <div className="rounded-xl rounded-tl-sm border border-border bg-background/60 p-3" style={{ borderLeft: `4px solid ${color}` }}>
+        <div className="rounded-xl border border-border bg-background/50 p-3.5" style={{ borderLeft: `3px solid ${color}` }}>
             <div className="mb-1.5 flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1.5 rounded-full px-2 py-0.5 font-heading text-200 font-semibold" style={{ background: `${color}1f`, color }}>
-                    <Icon className="icon-size-100" aria-hidden /> {member.name}
-                </span>
-                {reply.result && (
-                    <span className="font-monospace text-100 text-muted-foreground" title={`via MCP · ${reply.result.identity}`}>
-                        {(reply.result.totalMs / 1000).toFixed(1)}s
-                    </span>
-                )}
+                <span className="font-monospace text-100 font-semibold uppercase tracking-widest" style={{ color }}>▶ {member.tag}</span>
+                {reply.result && <span className="font-monospace text-100 text-muted-foreground" title="via MCP">{(reply.result.totalMs / 1000).toFixed(1)}s</span>}
             </div>
+
             {reply.error ? (
                 <p role="alert" className="text-200 text-destructive">{reply.error}</p>
             ) : reply.result ? (
-                <div className="max-h-[28rem] overflow-auto"><RichAnswer text={reply.result.answer} color={color} highlights={{ entities }} /></div>
+                <>
+                    <div className="max-h-[30rem] overflow-auto"><RichAnswer text={reply.result.answer} color={color} highlights={{ entities }} /></div>
+                    <p className="mt-2 font-monospace text-100 text-muted-foreground">sources · {sourceList}</p>
+                </>
             ) : (
-                <div className="space-y-1.5"><div className="h-2.5 w-3/4 rounded bg-muted trace-pulse" /><div className="h-2.5 w-1/2 rounded bg-muted trace-pulse" /></div>
+                <div className="space-y-1.5">
+                    <div className="h-2.5 w-3/4 rounded bg-muted trace-pulse" />
+                    <div className="h-2.5 w-1/2 rounded bg-muted trace-pulse" />
+                    <p className="text-100 text-muted-foreground">{member.name} is querying the lakehouse…</p>
+                </div>
             )}
 
-            {reply.result && buttons.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                    {buttons.map((b) => {
-                        const st = reply.done[b.key];
-                        const BIcon = st === "done" ? Check : b.icon;
-                        return (
-                            <button key={b.key} type="button" disabled={st === "busy" || st === "done"} onClick={() => onRun(turn, reply, b.key, b.run)}
-                                style={b.tone === "primary" && !st ? { background: color, borderColor: color } : undefined}
-                                title={typeof st === "string" && st.startsWith("Failed") ? st : "Runs a Rayfin function"}
-                                className={cn("flex items-center gap-1 rounded-md border px-2 py-1 text-100 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                                    st === "done" ? "border-success/50 text-success" :
-                                        st?.startsWith("Failed") ? "border-destructive/50 text-destructive" :
-                                            b.tone === "primary" ? "text-on-brand hover:opacity-90" : "border-border text-foreground hover:bg-muted",
-                                    st === "busy" && "trace-pulse")}>
-                                <BIcon className="icon-size-100" aria-hidden />{b.label}
-                            </button>
-                        );
-                    })}
+            {reply.result && (
+                <div className="mt-3 space-y-2">
+                    {handoffs.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                            {handoffs.map((h) => {
+                                const c = memberByKey(h.to).color;
+                                return (
+                                    <button key={h.label} type="button" onClick={() => onAsk(h.question, h.to)}
+                                        style={{ borderColor: `${c}99`, color: c }}
+                                        className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-200 font-semibold hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                        {h.label} <ArrowRight className="icon-size-100" />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+                    {buttons.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-monospace text-100 uppercase tracking-widest text-muted-foreground">act</span>
+                            {buttons.map((b) => {
+                                const st = reply.done[b.key];
+                                const BIcon = st === "done" ? Check : b.icon;
+                                return (
+                                    <button key={b.key} type="button" disabled={st === "busy" || st === "done"} onClick={() => onRun(turn, reply, b.key, b.run)}
+                                        title={typeof st === "string" && st.startsWith("Failed") ? st : "Runs a Rayfin function"}
+                                        className={cn("flex items-center gap-1 rounded-md border px-2 py-0.5 text-100 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                            st === "done" ? "border-success/50 text-success" :
+                                                st?.startsWith("Failed") ? "border-destructive/50 text-destructive" :
+                                                    b.primary ? "border-brand/60 text-brand-foreground hover:bg-muted" : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+                                            st === "busy" && "trace-pulse")}>
+                                        <BIcon className="icon-size-100" aria-hidden />{b.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             )}
             {reply.plan && <PlanCard plan={reply.plan} onAsk={onAsk} />}
@@ -287,38 +319,31 @@ function AnswerCard({ turn, reply, data, focus, onRun, onAsk }: {
 }
 
 function PlanCard({ plan, onAsk }: { plan: RecoveryPlanResult; onAsk: (q: string, to: Target) => void }) {
-    const tone = plan.verdict === "on track" || plan.verdict === "recoverable" ? "text-success" : plan.verdict === "stretch" ? "text-signal" : "text-destructive";
+    const tone = plan.verdict === "on track" || plan.verdict === "recoverable" ? "text-success" : plan.verdict === "stretch" ? "text-[#f5c542]" : "text-destructive";
+    const ops = memberByKey("operations").color, pl = memberByKey("planning").color;
     return (
-        <div className="mt-2 rounded-lg border border-brand/40 bg-brand/5 p-3">
+        <div className="mt-3 rounded-xl border border-border bg-card p-3" style={{ borderLeft: `3px solid ${TEAM_COLOR}` }}>
             <div className="flex items-center justify-between">
-                <div className="font-monospace text-100 uppercase tracking-widest text-muted-foreground">buildRecoveryPlan()</div>
-                <span className={cn("rounded-full bg-muted px-2 py-0.5 text-100 font-semibold", tone)}>{plan.verdict}</span>
+                <span className="font-monospace text-100 font-semibold uppercase tracking-widest" style={{ color: TEAM_COLOR }}>▶ buildRecoveryPlan</span>
+                <span className={cn("rounded-full border border-border px-2 py-0.5 text-100 font-semibold uppercase", tone)}>{plan.verdict}</span>
             </div>
-            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-                <Stat label="Gap Jan–Jul" value={eur(plan.gapYtdEur, true)} sub={pct(plan.gapYtdPct, true)} bad={plan.gapYtdEur < 0} />
-                <Stat label="Needed / month" value={eur(plan.requiredMonthlyEur, true)} sub={`budget ${eur(plan.budgetMonthlyEur, true)}`} />
-                <Stat label="Uplift" value={pct(plan.upliftPct, true)} sub={`${plan.monthsRemaining} months left`} bad={plan.upliftPct > 15} />
-            </div>
+            <p className="mt-1.5 text-300 text-foreground">
+                <strong className="text-emphasis-foreground">{plan.subject}</strong> is <span className="font-semibold text-destructive">{eur(plan.gapYtdEur, true)}</span> ({pct(plan.gapYtdPct, true)}) against budget Jan–Jul.
+                Landing the full-year budget needs <span className="font-numeric font-semibold" style={{ color: TEAM_COLOR }}>{eur(plan.requiredMonthlyEur, true)}</span> a month
+                for {plan.monthsRemaining} months, against a budget of {eur(plan.budgetMonthlyEur, true)} — <span className="font-semibold" style={{ color: TEAM_COLOR }}>{pct(plan.upliftPct, true)}</span>.
+            </p>
             <ol className="mt-2 list-decimal space-y-1 pl-4 text-200 text-foreground">
-                {plan.steps.map((s) => <li key={s}>{s}</li>)}
+                {plan.steps.slice(1).map((s) => <li key={s}>{s}</li>)}
             </ol>
             <div className="mt-2 flex flex-wrap gap-1.5">
-                <button type="button" onClick={() => onAsk(`What open and overdue orders does ${plan.subject} have, in euros?`, "operations")}
-                    className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-100 hover:bg-muted"><Truck className="icon-size-100" /> Ask Operations</button>
-                <button type="button" onClick={() => onAsk(`Does the 2022 forecast assume ${plan.subject} misses budget?`, "planning")}
-                    className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-100 hover:bg-muted"><Target className="icon-size-100" /> Ask Planning</button>
+                <button type="button" onClick={() => onAsk(`Which overdue or late orders does the key account ${plan.subject} have, in euros?`, "operations")}
+                    style={{ borderColor: `${ops}99`, color: ops }} className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-200 font-semibold hover:bg-muted">
+                    Ask Operations about the backlog <ArrowRight className="icon-size-100" /></button>
+                <button type="button" onClick={() => onAsk(`Does the 2022 forecast already assume ${plan.subject} misses budget?`, "planning")}
+                    style={{ borderColor: `${pl}99`, color: pl }} className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-200 font-semibold hover:bg-muted">
+                    Ask Planning about the forecast <ArrowRight className="icon-size-100" /></button>
             </div>
-            <div className="mt-2 text-100 text-muted-foreground">Saved to the action board.</div>
-        </div>
-    );
-}
-
-function Stat({ label, value, sub, bad }: { label: string; value: string; sub: string; bad?: boolean }) {
-    return (
-        <div className="rounded-md bg-card p-1.5">
-            <div className="text-100 text-muted-foreground">{label}</div>
-            <div className={cn("font-numeric text-300 font-semibold", bad ? "text-destructive" : "text-emphasis-foreground")}>{value}</div>
-            <div className="text-100 text-muted-foreground">{sub}</div>
+            <p className="mt-2 font-monospace text-100 text-muted-foreground">saved to the action board · sources · app.sales_vs_budget</p>
         </div>
     );
 }
@@ -328,17 +353,19 @@ function Stat({ label, value, sub, bad }: { label: string; value: string; sub: s
 const KIND_ICON = { "follow-up": Flag, escalation: Siren, "recovery-plan": LifeBuoy, watch: Eye } as const;
 
 function ActionBoard({ actions, error, onToggle }: { actions: ActionRow[] | null; error?: string; onToggle: (a: ActionRow) => Promise<void> }) {
-    if (error) return <p role="alert" className="m-3 text-200 text-destructive">{error}</p>;
-    if (!actions) return <div className="m-3 h-40 rounded-lg bg-muted trace-pulse" />;
-    if (!actions.length) return <p className="m-3 text-200 text-muted-foreground">No actions yet. Ask an agent, then use the buttons under its answer.</p>;
+    if (error) return <p role="alert" className="m-4 text-200 text-destructive">{error}</p>;
+    if (!actions) return <div className="m-4 h-40 rounded-lg bg-muted trace-pulse" />;
+    if (!actions.length) return <p className="m-4 text-300 text-muted-foreground">No actions yet. Ask an agent, then use the buttons under its answer.</p>;
     const order = { high: 0, medium: 1, low: 2 };
     const sorted = [...actions].sort((a, b) => (a.status === b.status ? order[a.priority] - order[b.priority] : a.status === "open" ? -1 : 1));
+    const prio = { high: "#f87171", medium: "#f5c542", low: "#2dd4a7" };
     return (
-        <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+        <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pb-4">
             {sorted.map((a) => {
                 const KIcon = KIND_ICON[a.kind];
+                const agentColor = a.agent && ["sales", "operations", "planning"].includes(a.agent) ? colorOf(a.agent as AgentKey) : TEAM_COLOR;
                 return (
-                    <li key={a.id} className={cn("rounded-lg border border-border p-2.5", a.status === "done" && "opacity-55")}>
+                    <li key={a.id} className={cn("rounded-xl border border-border bg-background/50 p-3", a.status === "done" && "opacity-55")} style={{ borderLeft: `3px solid ${agentColor}` }}>
                         <div className="flex items-start gap-2">
                             <button type="button" onClick={() => void onToggle(a)} aria-label={a.status === "open" ? "Mark done" : "Reopen"}
                                 className="mt-0.5 text-muted-foreground hover:text-success focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -346,17 +373,16 @@ function ActionBoard({ actions, error, onToggle }: { actions: ActionRow[] | null
                             </button>
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
-                                    <KIcon className="icon-size-100 shrink-0 text-brand-foreground" aria-hidden />
-                                    <span className={cn("truncate text-200 font-semibold text-emphasis-foreground", a.status === "done" && "line-through")}>{a.title}</span>
+                                    <KIcon className="icon-size-100 shrink-0" style={{ color: agentColor }} aria-hidden />
+                                    <span className={cn("truncate text-300 font-semibold text-emphasis-foreground", a.status === "done" && "line-through")}>{a.title}</span>
                                 </div>
-                                <div className="mt-0.5 flex flex-wrap gap-x-2 font-monospace text-100 text-muted-foreground">
-                                    <span className={a.priority === "high" ? "text-destructive" : undefined}>{a.priority}</span>
+                                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 font-monospace text-100 text-muted-foreground">
+                                    <span className="flex items-center gap-1"><span className="inline-block size-1.5 rounded-full" style={{ background: prio[a.priority] }} />{a.priority}</span>
                                     {a.dueDate && <span>due {a.dueDate.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>}
                                     {a.amountEur ? <span>{eur(a.amountEur, true)} to land</span> : null}
-                                    {a.agent && <span>from {a.agent}</span>}
+                                    {a.agent && <span style={{ color: agentColor }}>{a.agent}</span>}
                                 </div>
-                                {a.owner && <div className="text-100 text-muted-foreground">{a.owner}</div>}
-                                {a.detail && <p className="mt-1 line-clamp-3 whitespace-pre-line text-100 text-foreground">{a.detail}</p>}
+                                {a.detail && <p className="mt-1 line-clamp-3 whitespace-pre-line text-200 text-foreground">{a.detail}</p>}
                             </div>
                         </div>
                     </li>

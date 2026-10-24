@@ -20,7 +20,7 @@ export function ForecastDiverging({ rows, onSelect }: { rows: ForecastRow[]; onS
                     <g key={d.productType} transform={`translate(0,${i * rowH})`} className="cursor-pointer" onClick={() => onSelect(d)}>
                         <title>{`${d.productType}: forecast ${fmtEurShort(d.forecast)} vs budget ${fmtEurShort(d.budget)} (${d.pct.toFixed(1)}%)`}</title>
                         <text x={labelW - 6} y={rowH / 2 + 3} textAnchor="end" className="fill-foreground text-200">{d.productType}</text>
-                        <rect x={Math.min(x(0), x(d.gap))} y={4} width={Math.abs(x(d.gap) - x(0))} height={rowH - 8} rx={2} fill={d.gap < 0 ? C.red : C.blue} opacity={0.85} />
+                        <rect x={Math.min(x(0), x(d.gap))} y={4} width={Math.abs(x(d.gap) - x(0))} height={rowH - 8} rx={2} fill={d.gap < 0 ? C.red : C.green} opacity={0.85} />
                         <text x={d.gap < 0 ? x(0) + 4 : x(0) - 4} y={rowH / 2 + 3} textAnchor={d.gap < 0 ? "start" : "end"} className="fill-muted-foreground font-numeric text-100">
                             {d.pct >= 0 ? "+" : ""}{d.pct.toFixed(1)}%
                         </text>

@@ -72,7 +72,7 @@ export function PulseChart({ data }: { data: MonthPoint[] }) {
                 <line x1={m.l} x2={width - m.r} y1={yc(0)} y2={yc(0)} className="stroke-border" />
                 {years.map(([yr, pts]) => (
                     <g key={yr}>
-                        <path d={area(pts.filter((p) => !p.partial)) ?? ""} fill={(pts.filter((p) => !p.partial).at(-1)?.cum ?? 0) < 0 ? C.red : C.blue} opacity={0.35} />
+                        <path d={area(pts.filter((p) => !p.partial)) ?? ""} fill={(pts.filter((p) => !p.partial).at(-1)?.cum ?? 0) < 0 ? C.red : C.green} opacity={0.35} />
                         <text x={x(pts[0].month)} y={m.t + hTop + between - 4} className="fill-muted-foreground font-monospace text-100">
                             {yr} cumulative gap {fmtEurShort(pts.filter((p) => !p.partial).at(-1)?.cum ?? 0)}
                         </text>

@@ -22,8 +22,8 @@ export function useAppTheme() {
         // Check for .dark class
         if (document.documentElement.classList.contains("dark")) return true;
 
-        // Fall back to OS preference
-        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+        // The command center is designed dark-first; light is one click away.
+        return true;
     });
 
     useEffect(() => {
@@ -34,7 +34,7 @@ export function useAppTheme() {
     useEffect(() => {
         // Watch OS-level preference
         const mql = window.matchMedia("(prefers-color-scheme: dark)");
-        const onMediaChange = (e: MediaQueryListEvent) => setIsDark(e.matches);
+        const onMediaChange = () => undefined; // dark-first: ignore OS changes
         mql.addEventListener("change", onMediaChange);
 
         // Watch data-appearance attribute on <html>

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export const C = {
-    blue: "#0078d4",
-    blueSoft: "#4da3ff",
-    yellow: "#f2c811",
-    red: "#e05252",
-    green: "#2fa572",
+    blue: "#38bdf8",      // net sales / primary series
+    blueSoft: "#7dd3fc",
+    yellow: "#f5c542",    // budget / plan
+    red: "#f87171",       // below plan
+    green: "#2dd4a7",     // above plan
 };
 
 /** Width of a container, kept in sync with ResizeObserver. */
@@ -26,7 +26,7 @@ export function useWidth<T extends HTMLElement>(fallback = 600) {
 export function gapColor(gapPct: number, max = 15) {
     const t = Math.min(1, Math.abs(gapPct) / max);
     const alpha = 0.12 + 0.78 * t;
-    return gapPct < 0 ? `rgba(224, 82, 82, ${alpha})` : `rgba(0, 120, 212, ${alpha})`;
+    return gapPct < 0 ? `rgba(248, 113, 113, ${alpha})` : `rgba(45, 212, 167, ${alpha})`;
 }
 
 export interface TooltipState { x: number; y: number; content: ReactNode }

@@ -6,29 +6,27 @@ import { AnswerChart } from "./AnswerChart";
 import { splitAnswer } from "./parseTables";
 
 export interface Highlights {
-    /** Names to show as tinted chips (key accounts, regions, product types). */
+    /** Names to emphasise (key accounts, regions, product types). */
     entities: string[];
 }
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
- * Colour-codes an agent answer: shortfalls (negative euros or %) in red, gains in green,
- * euro amounts in bold numerals, named accounts/regions/product types as chips — and
- * turns markdown tables into charts.
+ * The command-center answer style: names in bold white, key figures in the agent's colour,
+ * shortfalls in red, table and column names in mono — and markdown tables drawn as charts.
  */
 export function RichAnswer({ text, color, highlights }: { text: string; color: string; highlights: Highlights }) {
     const names = [...new Set(highlights.entities.filter((n) => n.length > 2))].sort((a, b) => b.length - a.length);
     const pattern = new RegExp(
         [
-            String.raw`[−–-]\s?€\s?[\d,.]+(?:\s?(?:bn|m|k))?`,          // negative euros
-            String.raw`\+\s?€\s?[\d,.]+(?:\s?(?:bn|m|k))?`,             // positive euros
-            String.raw`[−–-]\d+(?:\.\d+)?\s?%`,                          // negative %
-            String.raw`\+\d+(?:\.\d+)?\s?%`,                             // positive %
-            String.raw`(?:€|EUR)\s?[\d,.]+(?:\s?(?:bn|m|k|million|billion))?`,  // euros
-            String.raw`(?<![\w.])[−–-][\d,]+(?:\.\d+)?(?![\w])`,      // other negative numbers (table cells)
-            String.raw`\b(?:behind|below|short(?:fall)?|missed?|under(?:-plan)?|overdue|late|decline[ds]?|down)\b`,
-            String.raw`\b(?:ahead|above|over(?:-plan)?|grew|growth|up|exceed(?:ed|s)?)\b`,
+            String.raw`[−–-]\s?(?:€|EUR)\s?[\d,.]+(?:\s?(?:bn|m|k|million|billion))?`,
+            String.raw`(?<![\w.])[−–-]\d[\d,]*(?:\.\d+)?\s?%?(?![\w])`,
+            String.raw`\+\s?(?:€|EUR)?\s?\d[\d,.]*(?:\s?(?:bn|m|k|million|billion))?\s?%?`,
+            String.raw`(?:€|EUR)\s?\d[\d,.]*(?:\s?(?:bn|m|k|million|billion))?`,
+            String.raw`\b\d[\d,]*(?:\.\d+)?\s?%`,
+            String.raw`\b[a-z]+(?:_[a-z]+)+\b`,
+            String.raw`\b(?:behind|below|short(?:fall)?|missed?|overdue|late)\b`,
             ...names.map(escape),
         ].join("|"),
         "gi",
@@ -42,21 +40,13 @@ export function RichAnswer({ text, color, highlights }: { text: string; color: s
             const t = m[0];
             const at = m.index ?? 0;
             if (at > last) out.push(s.slice(last, at));
+            const k = `${key}-${at}`;
             const lower = t.toLowerCase();
-            let cls = "";
-            if (nameSet.has(lower)) {
-                out.push(
-                    <span key={`${key}-${at}`} className="rounded px-1 font-semibold text-emphasis-foreground" style={{ background: `${color}22`, boxShadow: `inset 0 -2px 0 ${color}` }}>
-                        {t}
-                    </span>,
-                );
-                last = at + t.length;
-                continue;
-            }
-            if (/^[−–-]/.test(t) || /^(behind|below|short|shortfall|miss|missed|under|under-plan|overdue|late|decline|declined|declines)$/.test(lower)) cls = "font-semibold text-destructive";
-            else if (/^\+/.test(t) || /^(ahead|above|over|over-plan|grew|growth|exceed|exceeded|exceeds)$/.test(lower)) cls = "font-semibold text-success";
-            else cls = "font-numeric font-semibold text-emphasis-foreground";
-            out.push(<span key={`${key}-${at}`} className={cls}>{t}</span>);
+            if (nameSet.has(lower)) out.push(<strong key={k} className="font-semibold text-emphasis-foreground">{t}</strong>);
+            else if (/^[a-z]+(_[a-z]+)+$/.test(t)) out.push(<span key={k} className="font-monospace text-[0.92em]" style={{ color }}>{t}</span>);
+            else if (/^[−–-]/.test(t) || /^(behind|below|short|shortfall|miss|missed|overdue|late)$/.test(lower)) out.push(<span key={k} className="font-semibold text-destructive">{t}</span>);
+            else if (/^\+/.test(t)) out.push(<span key={k} className="font-semibold text-success">{t}</span>);
+            else out.push(<span key={k} className="font-numeric font-semibold" style={{ color }}>{t}</span>);
             last = at + t.length;
         }
         if (last < s.length) out.push(s.slice(last));
@@ -84,7 +74,7 @@ export function RichAnswer({ text, color, highlights }: { text: string; color: s
     );
 
     return (
-        <div className="prose-answer text-200 leading-300">
+        <div className="prose-answer text-300 leading-400 text-foreground">
             {splitAnswer(text).map((part, i) =>
                 part.type === "table" ? (
                     <AnswerChart key={i} table={part.table} raw={part.raw} color={color} />
