@@ -4,6 +4,7 @@
 // *O4 there counts account_type = 'Key Account' only; the app treats Private Contract as a key account too.
 
 import { getRayfinClient } from "@/lib/rayfin-client";
+import { pick } from "@/lib/snapshot";
 
 const sp = () => getRayfinClient().connectors.spaceparts;
 const num = (v: unknown) => Number(v ?? 0);
@@ -48,9 +49,9 @@ export function loadPlanData(): Promise<PlanData> {
 
 async function loadOps(): Promise<OpsData> {
     const [b, d, c] = await Promise.all([
-        sp().OrderBacklog.select(["statusText", "interplanetaryRegion", "keyAccountName", "orderLines", "valueEur"]).first(5000).execute(),
-        sp().DeliveryByRegion.select(["month", "interplanetaryRegion", "onTimeLines", "invoiceLines", "latePenaltiesEur"]).first(2000).execute(),
-        sp().CancellationsByType.select(["productType", "cancelledEur", "orderedEur"]).first(100).execute(),
+        pick("OrderBacklog", () => sp().OrderBacklog.select(["statusText", "interplanetaryRegion", "keyAccountName", "orderLines", "valueEur"]).first(5000).execute()),
+        pick("DeliveryByRegion", () => sp().DeliveryByRegion.select(["month", "interplanetaryRegion", "onTimeLines", "invoiceLines", "latePenaltiesEur"]).first(2000).execute()),
+        pick("CancellationsByType", () => sp().CancellationsByType.select(["productType", "cancelledEur", "orderedEur"]).first(100).execute()),
     ]);
     const data: OpsData = {
         backlog: b.map((r) => ({ status: str(r.statusText) as BacklogStatus, region: str(r.interplanetaryRegion), account: str(r.keyAccountName), lines: num(r.orderLines), value: num(r.valueEur) })),
@@ -65,9 +66,9 @@ async function loadOps(): Promise<OpsData> {
 
 async function loadPlan(): Promise<PlanData> {
     const [t, b, f] = await Promise.all([
-        sp().TerritoryVsForecast.select(["month", "territory", "interplanetaryRegion", "forecastEur", "actualEur"]).first(5000).execute(),
-        sp().BrandVsBudget.select(["month", "brand", "brandClass", "actualEur", "budgetEur"]).first(5000).execute(),
-        sp().ForecastVsBudget.select(["month", "productType", "forecastEur", "budgetEur"]).first(1000).execute(),
+        pick("TerritoryVsForecast", () => sp().TerritoryVsForecast.select(["month", "territory", "interplanetaryRegion", "forecastEur", "actualEur"]).first(5000).execute()),
+        pick("BrandVsBudget", () => sp().BrandVsBudget.select(["month", "brand", "brandClass", "actualEur", "budgetEur"]).first(5000).execute()),
+        pick("ForecastVsBudget", () => sp().ForecastVsBudget.select(["month", "productType", "forecastEur", "budgetEur"]).first(1000).execute()),
     ]);
     return {
         territories: t.map((r) => ({ month: asDate(r.month), territory: str(r.territory), region: str(r.interplanetaryRegion), forecast: num(r.forecastEur), actual: num(r.actualEur) })),

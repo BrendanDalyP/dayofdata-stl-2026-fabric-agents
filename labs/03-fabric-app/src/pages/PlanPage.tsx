@@ -59,7 +59,7 @@ export function PlanPage() {
         const terrRows: GapRow<string>[] = terrAll
             .map(([name, t]) => ({ name, t, g: t.actual - t.forecast }))
             .sort((a, b) => a.g - b.g).slice(0, 10)
-            .map(({ name, t }) => ({ key: name, label: name, gap: gap(t.actual, t.forecast), value: fmtEurShort(t.actual - t.forecast), item: name, tip: `${name} (${t.region}): ${fmtEurShort(t.actual)} actual vs ${fmtEurShort(t.forecast)} forecast, Jan–Jul (${gap(t.actual, t.forecast).toFixed(1)}%)` }));
+            .map(({ name, t }) => ({ key: name, label: name, gap: t.actual - t.forecast, item: name, tip: `${name} (${t.region}): ${fmtEurShort(t.actual)} actual vs ${fmtEurShort(t.forecast)} forecast, Jan–Jul (${gap(t.actual, t.forecast).toFixed(1)}%)` }));
         const terrBehind = terrAll.filter(([, t]) => t.actual < t.forecast).length;
 
         // brands, Jan–Jul vs budget; class growth vs Jan–Jul 2021
@@ -131,10 +131,10 @@ export function PlanPage() {
                 {k ? <GapBars rows={k.typeRows} label="2022 forecast vs budget by product type" onSelect={(t) => ask(`Why is the 2022 forecast for ${t} different from budget, by month and territory?`, "planning", t)} /> : <Skeleton />}
             </Card>
 
-            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-80" title={k?.terrRows[0] ? `${k.terrBehind} of ${k.terrCount} territories trail forecast; ${k.terrRows[0].label} by ${k.terrRows[0].value}` : "Territories furthest behind forecast"}
-                subtitle="Ten largest gaps, Jan–Jul 2022 · bar = %, label = €"
+            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-80" title={k ? `${k.terrBehind} of ${k.terrCount} territories trail forecast` : "Territories furthest behind forecast"}
+                subtitle="Largest gaps to forecast, Jan–Jul 2022, € · click to ask"
                 source="SpaceParts lakehouse · app.territory_vs_forecast">
-                {k ? <GapBars rows={k.terrRows} label="Territories furthest behind forecast" onSelect={(t) => ask(`Why is the territory ${t} behind its forecast this year, by month and product type?`, "planning", t)} /> : <Skeleton />}
+                {k ? <GapBars unit="eur" fit="top" rows={k.terrRows} label="Territories furthest behind forecast" onSelect={(t) => ask(`Why is the territory ${t} behind its forecast this year, by month and product type?`, "planning", t)} /> : <Skeleton />}
             </Card>
             <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-80" title={k ? (k.brandsBehind ? `${k.brandsBehind} of ${k.brandRows.length} brands are behind budget` : `All ${k.brandRows.length} brands are at or above budget`) : "Brands against budget"}
                 subtitle="Jan–Jul 2022 against budget, % · ·P = private brand"

@@ -16,6 +16,7 @@ import { ThemeContext } from './hooks/theme.context';
 import { AuthProvider } from './hooks/use-auth';
 import { bootstrapAuth } from './services/rayfin-auth.service';
 import { AuthGate } from './components/auth-gate.component';
+import { SNAPSHOT } from './lib/snapshot';
 
 import "./global.css"
 import { initTheme } from "./components/ThemeMenu";
@@ -32,9 +33,11 @@ function Root() {
         <ThemeContext.Provider value={{ isDark, toggleTheme, theme }}>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <AuthProvider rayfinAuthService={rayfinAuthService}>
-                    <AuthGate>
-                        <App />
-                    </AuthGate>
+                    {SNAPSHOT ? <App /> : (
+                        <AuthGate>
+                            <App />
+                        </AuthGate>
+                    )}
                 </AuthProvider>
             </ErrorBoundary>
         </ThemeContext.Provider>

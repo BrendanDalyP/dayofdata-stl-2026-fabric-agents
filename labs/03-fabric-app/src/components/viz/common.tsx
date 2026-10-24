@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import * as d3 from "d3";
 
 /**
@@ -39,6 +39,11 @@ export function gapColor(gapPct: number, max = 15) {
 export function useSize<T extends HTMLElement>(fallback = { width: 600, height: 300 }) {
     const ref = useRef<T>(null);
     const [size, setSize] = useState(fallback);
+    // Measure before the first paint, so a chart never draws at the fallback size.
+    useLayoutEffect(() => {
+        const r = ref.current?.getBoundingClientRect();
+        if (r && r.width > 0) setSize({ width: Math.max(200, Math.floor(r.width)), height: Math.max(80, Math.floor(r.height)) });
+    }, []);
     useEffect(() => {
         const el = ref.current;
         if (!el) return;

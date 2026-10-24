@@ -24,6 +24,18 @@ const projectRoot = process.env.PROJECT_ROOT || import.meta.dirname
 const localNetworkAccessPlugin: PluginOption = {
   name: 'local-network-access-headers',
   configureServer(server) {
+    // Local screenshot reviews: serve JSON exported by scripts/export_snapshot.py at /__snapshot/<entity>.json
+    // when SNAPSHOT_DIR is set (dev server only; see src/lib/snapshot.ts).
+    server.middlewares.use('/__snapshot', (req, res, next) => {
+      const dir = process.env.SNAPSHOT_DIR;
+      const name = (req.url ?? '').replace(/^\//, '');
+      if (!dir || !/^[A-Za-z]+\.json$/.test(name)) return next();
+      import('fs').then(({ readFile }) => readFile(resolve(dir, name), (err, buf) => {
+        if (err) { res.statusCode = 404; res.end(); return; }
+        res.setHeader('Content-Type', 'application/json');
+        res.end(buf);
+      }));
+    });
     server.middlewares.use((req, res, next) => {
       res.setHeader('Access-Control-Allow-Private-Network', 'true');
       if (req.method === 'OPTIONS' && req.headers['access-control-request-private-network']) {

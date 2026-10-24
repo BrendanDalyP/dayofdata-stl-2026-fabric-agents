@@ -6,6 +6,7 @@
 // with an explicit page size and aggregate in the browser.
 
 import { getRayfinClient } from "@/lib/rayfin-client";
+import { pick } from "@/lib/snapshot";
 
 export const DATA_END_LABEL = "21 Aug 2022";
 export const YTD_MONTHS = 7; // Jan–Jul complete
@@ -77,9 +78,9 @@ export function loadCommandData(): Promise<CommandData> {
 
 async function load(): Promise<CommandData> {
     const [salesRows, deliveryRows, forecastRows] = await Promise.all([
-        sp().SalesVsBudget.select(["month", "interplanetaryRegion", "keyAccountName", "netSalesEur", "budgetEur"]).first(20000).execute(),
-        sp().DeliveryByMonth.select(["month", "onTimeLines", "invoiceLines", "latePenaltiesEur"]).first(1000).execute(),
-        sp().ForecastVsBudget.select(["month", "productType", "forecastEur", "budgetEur"]).first(1000).execute(),
+        pick("SalesVsBudget", () => sp().SalesVsBudget.select(["month", "interplanetaryRegion", "keyAccountName", "netSalesEur", "budgetEur"]).first(20000).execute()),
+        pick("DeliveryByMonth", () => sp().DeliveryByMonth.select(["month", "onTimeLines", "invoiceLines", "latePenaltiesEur"]).first(1000).execute()),
+        pick("ForecastVsBudget", () => sp().ForecastVsBudget.select(["month", "productType", "forecastEur", "budgetEur"]).first(1000).execute()),
     ]);
 
     const base = salesRows.map((r) => ({

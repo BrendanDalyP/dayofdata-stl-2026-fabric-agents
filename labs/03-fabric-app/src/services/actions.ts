@@ -2,6 +2,7 @@
 // due date, owner and the recovery maths are decided server-side (rayfin/functions/src/actions.ts).
 
 import { getRayfinClient } from "@/lib/rayfin-client";
+import { pick } from "@/lib/snapshot";
 import type { RecoveryPlanResult } from "../../rayfin/functions/src/types";
 import type { AgentKey } from "@/agent/team";
 import { MONTHS_REMAINING, type Subject } from "@/queries/overview";
@@ -50,11 +51,11 @@ export async function setActionStatus(id: string, status: "open" | "done") {
 }
 
 export async function listActions(): Promise<ActionRow[]> {
-    const rows = await getRayfinClient()
+    const rows = await pick("ActionItem", () => getRayfinClient()
         .data.ActionItem.select(["id", "kind", "status", "title", "subject", "detail", "owner", "priority", "amountEur", "dueDate", "agent", "createdAt"])
         .orderBy({ createdAt: "desc" })
         .first(200)
-        .execute();
+        .execute());
     return (rows as unknown as ActionRow[]).map((r) => ({
         ...r,
         subject: r.subject === "-" ? undefined : r.subject,

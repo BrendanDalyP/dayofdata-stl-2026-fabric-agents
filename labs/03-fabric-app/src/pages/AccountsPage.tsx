@@ -133,7 +133,7 @@ function AccountDetail({ a }: { a: Subject }) {
     );
 
     return (
-        <div className="col-span-8 grid min-h-0 grid-rows-[auto_minmax(0,1fr)_minmax(0,1.1fr)] gap-3 max-[1100px]:col-span-12">
+        <div className="col-span-8 grid min-h-0 grid-rows-[auto_minmax(0,1.5fr)_minmax(0,1fr)] gap-3 max-[1100px]:col-span-12">
             {/* header */}
             <div className="rounded-lg border border-border bg-card px-4 py-3">
                 <div className="flex flex-wrap items-center gap-3">
@@ -157,12 +157,8 @@ function AccountDetail({ a }: { a: Subject }) {
 
             {/* trend + recovery maths */}
             <div className="grid min-h-0 grid-cols-12 gap-3">
-                <Card className="col-span-8" title={`${a.name} was below budget in ${missed} of 7 months of 2022`} subtitle="Monthly net sales and budget, € · click a month to ask"
-                        source="SpaceParts lakehouse · app.sales_vs_budget · EUR at monthly rates"
-                        actions={<>
-                            <AskLink agent={sales.tag} color={sales.color} label="Which months missed?" onClick={() => ask(`Which months did the key account ${a.name} miss budget this year, and by how much?`, "sales", a.name)} />
-                            <AskLink agent={ops.tag} color={ops.color} label="Backlog" onClick={() => ask(`What is the open order backlog for the key account ${a.name}, in euros?`, "operations", a.name)} />
-                        </>}>
+                <Card className="col-span-8" title={`Below budget in ${missed} of 7 months of 2022`} subtitle="2022 net sales and budget by month, € · click a month to ask"
+                        source="SpaceParts lakehouse · app.sales_vs_budget · EUR at monthly rates">
                     <BudgetColumns label={`${a.name}: monthly net sales against budget`} data={a.monthly} onSelect={(m) => ask(`How did the key account ${a.name} do against budget in ${m.month.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}?`, "sales", `${a.name} · ${m.month.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })}`)} />
                 </Card>
                 <Card className="col-span-4" title="To land the full-year budget" subtitle={`Aug–Dec · ${MONTHS_REMAINING} months left`} bodyClassName="flex flex-col gap-3">
@@ -188,9 +184,9 @@ function AccountDetail({ a }: { a: Subject }) {
                 <AgentBrief className="col-span-8" agent="sales" context={a.name}
                     title={`What's driving ${a.name}?`}
                     question={`How is the key account ${a.name} doing against budget this year, and which months and product types drive the gap?`} />
-                <Card className="col-span-4" title="Ask the team" subtitle="Hand this account to another agent" bodyClassName="flex flex-col items-start gap-2">
+                <Card className="col-span-4" title="Ask the team" subtitle="Hand this account to another agent" bodyClassName="flex flex-col items-start gap-2 overflow-y-auto">
+                    <AskLink agent={sales.tag} color={sales.color} label="Which months missed?" onClick={() => ask(`Which months did the key account ${a.name} miss budget this year, and by how much?`, "sales", a.name)} />
                     <AskLink agent={ops.tag} color={ops.color} label="Overdue & late orders" onClick={() => ask(`Which overdue or late orders does the key account ${a.name} have, in euros?`, "operations", a.name)} />
-                    <AskLink agent={ops.tag} color={ops.color} label="Late-delivery penalties" onClick={() => ask(`How much in late-delivery penalties did ${a.name} receive this year, in euros?`, "operations", a.name)} />
                     <AskLink agent={plan.tag} color={plan.color} label="Forecast assumes a miss?" onClick={() => ask(`Does the 2022 forecast already assume ${a.name} misses budget?`, "planning", a.name)} />
                     <AskLink agent={sales.tag} color={sales.color} label="Growth vs last year" onClick={() => ask(`How did net sales for the key account ${a.name} grow against the same period last year?`, "sales", a.name)} />
                 </Card>
