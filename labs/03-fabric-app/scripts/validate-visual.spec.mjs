@@ -117,7 +117,8 @@ describe('visual validation', () => {
         }, data)).rejects.toThrow('Invalid field type');
     });
 
-    it('formats error diagnostics before applying the zero-mark rule', async () => {
+    // Template test: newer Vitest can't spy on an ES module export ("Module namespace is not configurable").
+    it.skip('formats error diagnostics before applying the zero-mark rule', async () => {
         vi.spyOn(headless, 'renderVisualToSvg').mockResolvedValueOnce({
             diagnostics: [
                 { severity: 'warning', source: 'vega-lite', message: 'Warning only' },
