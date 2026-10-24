@@ -26,21 +26,22 @@ SpaceParts invoices in 15 local currencies and reports in euros, and the data en
 
 Every demo answer is checked against [`labs/01-data-agent/verify_answers.sql`](labs/01-data-agent/verify_answers.sql); the results are in [`expected-answers.md`](labs/01-data-agent/expected-answers.md).
 
-## Reference deployment
+## What you end up with
 
-| Item | Where |
+| Item | Name |
 | --- | --- |
-| Workspace | Fabric Demos (`aa68b708-…`), folder **Day of Data STL** (`f93784bd-…`) — every item built for the talk lives there |
 | Lakehouse | `lh__spaceparts`, schema `SpaceParts`; app tables in schema `app` |
-| Agents | SpaceParts Sales Analyst · SpaceParts Operations · SpaceParts Planning (`labs/01-data-agent/published-agents.json`) |
-| App | `spaceparts-mission-control` → <https://keen-blaze-6f617cb0d9-northcentralus.webapp.fabricapps.net> |
+| Agents | SpaceParts Sales Analyst · SpaceParts Operations · SpaceParts Planning (`create_agents.py` writes their MCP URLs to `labs/01-data-agent/published-agents.json`) |
+| App | `spaceparts-mission-control`, a Fabric app with five tabs: Overview, Accounts, Operations, Plan, Actions |
+
+Nothing in this repo is tied to one tenant: every script takes your workspace and lakehouse IDs as arguments. Keep a whole demo in one workspace folder (`--folder-id`) so it's easy to find and clean up.
 
 ## Repo layout
 
 ```
 labs/
   00-prereqs.md
-  01-data-agent/      agents/<name>/, verify_answers.sql, create_agents.py, evaluate_agent.ipynb …
+  01-data-agent/      agents/<name>/, verify_answers.sql, create_agents.py, evaluation notebooks …
   02-connectivity/    test_agent_mcp.py, requirements.txt
   03-fabric-app/      the Rayfin app (rayfin/, src/, fabric/)
 scripts/discover.ps1  find workspaces, lakehouses and tables
@@ -51,6 +52,10 @@ scripts/discover.ps1  find workspaces, lakehouses and tables
 - **Fabric data agents:** generally available. The agent's **MCP endpoint** is the supported way to call it from code. Older samples use the OpenAI Assistants-style endpoint, which Microsoft now steers away from.
 - **Identity:** the app calls the agents as itself (Rayfin app identity) — no app registration, no secrets.
 - **Fabric Apps / Rayfin:** preview. Re-check commands against the docs before you build.
+
+## Licence
+
+Code and docs: MIT (see [LICENSE](LICENSE)). The SpaceParts dataset is not part of this repo and stays under Tabular Editor's terms.
 
 ## Credits
 

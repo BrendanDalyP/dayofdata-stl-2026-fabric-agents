@@ -5,14 +5,35 @@ files instead of the connector. Field names match the connector entities exactly
 same code on the same rows. Dev only: production builds never include or read them.
 
 Usage (after `az login`; needs pip install mssql-python):
-    python scripts/export_snapshot.py --out <folder>
+    python scripts/export_snapshot.py --workspace-id <ws> --out <folder> [--lakehouse lh__spaceparts]
+
+It finds the lakehouse's SQL endpoint and the app's SQL database (spaceparts-mission-control*) in the workspace.
 """
-import argparse, datetime as dt, decimal, json, pathlib
+import argparse, datetime as dt, decimal, json, pathlib, subprocess, sys
 
 import mssql_python
 
-SQL_ENDPOINT = ("fhhjzyywk65ehmt5dpoy7vtzae-bc3wrksfpmaupk7qxqojdpq4le.datawarehouse.fabric.microsoft.com", "lh__spaceparts")
-APP_DB = ("fhhjzyywk65ehmt5dpoy7vtzae-bc3wrksfpmaupk7qxqojdpq4le.database.fabric.microsoft.com", "spaceparts-mission-control-d0999c56-453e-45b6-932f-4b950b9d37a4")
+APP_DB_PREFIX = "spaceparts-mission-control"
+
+
+def list_items(ws: str, kind: str) -> list[dict]:
+    out = subprocess.run(["az", "rest", "--resource", "https://api.fabric.microsoft.com", "-u",
+                          f"https://api.fabric.microsoft.com/v1/workspaces/{ws}/{kind}"],
+                         capture_output=True, text=True, shell=sys.platform == "win32")
+    if out.returncode:
+        sys.exit(f"Couldn't list {kind} (run 'az login'?): {out.stderr[:400]}")
+    return json.loads(out.stdout)["value"]
+
+
+def find_sources(ws: str, lakehouse: str) -> tuple[tuple[str, str], tuple[str, str]]:
+    lh = next((l for l in list_items(ws, "lakehouses") if l["displayName"] == lakehouse), None)
+    if not lh:
+        sys.exit(f"No lakehouse named {lakehouse} in workspace {ws}.")
+    endpoint = (lh["properties"]["sqlEndpointProperties"]["connectionString"], lakehouse)
+    db = next((d for d in list_items(ws, "sqlDatabases") if d["displayName"].startswith(APP_DB_PREFIX)), None)
+    if not db:
+        sys.exit(f"No SQL database named {APP_DB_PREFIX}* in workspace {ws}. Deploy the app first (npx rayfin up).")
+    return endpoint, (db["properties"]["serverFqdn"].split(",")[0], db["properties"]["databaseName"])
 
 TABLES = {
     "SalesVsBudget": "SELECT month, interplanetary_region AS interplanetaryRegion, key_account_name AS keyAccountName, net_sales_eur AS netSalesEur, budget_eur AS budgetEur FROM app.sales_vs_budget",
@@ -49,11 +70,15 @@ def dump(conn_info, queries, out):
 
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument("--workspace-id", required=True)
+    p.add_argument("--lakehouse", default="lh__spaceparts")
     p.add_argument("--out", required=True)
-    out = pathlib.Path(p.parse_args().out)
+    a = p.parse_args()
+    out = pathlib.Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    dump(SQL_ENDPOINT, TABLES, out)
-    dump(APP_DB, {"ActionItem": "SELECT id, kind, status, title, subject, detail, owner, priority, amountEur, dueDate, agent, createdAt FROM dbo.ActionItems"}, out)
+    sql_endpoint, app_db = find_sources(a.workspace_id, a.lakehouse)
+    dump(sql_endpoint, TABLES, out)
+    dump(app_db, {"ActionItem": "SELECT id, kind, status, title, subject, detail, owner, priority, amountEur, dueDate, agent, createdAt FROM dbo.ActionItems"}, out)
 
 
 if __name__ == "__main__":

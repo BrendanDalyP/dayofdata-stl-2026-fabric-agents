@@ -18,7 +18,6 @@
 | **Capacities can be designated as Fabric Copilot capacities** | Billing for the above |
 | **Data sent to Azure OpenAI can be processed outside your capacity's geographic region…** (and the matching *stored* setting) | Only if your capacity is outside the US/EU data boundary |
 | **Fabric Apps (preview)** | Rayfin apps |
-| **Service principals can use Fabric APIs** | Lab 03 — calling the agent as an app registration |
 
 > Tenant settings can take up to an hour to apply.
 

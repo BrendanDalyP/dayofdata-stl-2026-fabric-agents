@@ -1,0 +1,17 @@
+{
+  "sales-analyst": {
+    "name": "SpaceParts Sales Analyst",
+    "id": "<agent id>",
+    "mcpUrl": "https://api.fabric.microsoft.com/v1/mcp/workspaces/<workspace id>/dataagents/<agent id>/agent"
+  },
+  "operations": {
+    "name": "SpaceParts Operations",
+    "id": "<agent id>",
+    "mcpUrl": "https://api.fabric.microsoft.com/v1/mcp/workspaces/<workspace id>/dataagents/<agent id>/agent"
+  },
+  "planning": {
+    "name": "SpaceParts Planning",
+    "id": "<agent id>",
+    "mcpUrl": "https://api.fabric.microsoft.com/v1/mcp/workspaces/<workspace id>/dataagents/<agent id>/agent"
+  }
+}

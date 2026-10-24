@@ -14,7 +14,9 @@
 | `validate_fewshots.py` | Runs every example query; a broken example misleads the agent |
 | `create_agents.py` | Creates or updates and publishes all three agents from the files above |
 | `make_ground_truth.py` | Runs `verify_answers.sql` → `ground_truth_<agent>.csv`, `expected-answers.md`, the app's offline answers |
-| `evaluate_agent.ipynb` | Evaluation with `fabric-data-agent-sdk` (run in Fabric) |
+| `evaluate_agent.ipynb` | Evaluation of all three agents with `fabric-data-agent-sdk` (run in Fabric) |
+| `build_eval_notebook.py` → `evaluate_live_agent.ipynb` | One-agent evaluation (example-query check + judged answers), deployable to your workspace |
+| `published-agents.example.json` | Shape of `published-agents.json`, which `create_agents.py` writes (git-ignored: it names your workspace) |
 
 ## 0. Load SpaceParts
 
@@ -85,6 +87,12 @@ python build_eval_notebook.py --deploy --workspace-id <ws> --lakehouse-id <lh> -
 ```
 
 Open `nb__evaluate_live_agent` in Fabric and run all. Change `AGENT` / `STAGE` in the first cell to score another agent, or the published version (`STAGE = "production"`).
+
+It runs two checks:
+1. **The example queries**: `datasource.evaluate_few_shots(batch_size=20)` grades every example query on the agent's lakehouse source for **Clarity**, **Relatedness** (does the SQL answer the question?) and **Mapping** (does every literal in the question appear in the SQL?), and flags **conflicts** between examples. You get `success_rate`, `quality_results`, `failure_cases` and `conflict_details`. SQL sources only; it's skipped when the agent has no examples yet. This follows Microsoft's *Fabric-DataAgent-Few-Shot-Examples-Validator* sample (microsoft/fabric-samples, `docs-samples/data-science/data-agent-sdk`) and the "Validate example queries" section of the Learn page on data agent example queries.
+2. **The agent's answers**: `evaluate_data_agent` against the SQL-checked test set, graded by the judge (below).
+
+`validate_fewshots.py` (above) checks the other half locally: that every example's SQL runs and returns the expected numbers.
 
 **All three agents: `evaluate_agent.ipynb`.** Upload the CSVs to the lakehouse `Files/evaluation/` folder, open it in Fabric and run it. Each question is asked three times; only questions that pass every repeat go on stage as chips.
 

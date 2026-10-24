@@ -74,10 +74,10 @@ def main() -> None:
         msg = str(e)
         print(f"\n✗ {type(e).__name__}: {msg[:600]}")
         if "401" in msg:
-            print("  401: the token was rejected. Check tenant, client ID and secret.")
+            print("  401: the token was rejected. Run 'az login' against the tenant that owns the workspace.")
         elif "403" in msg:
-            print("  403: not allowed in yet. Check the tenant setting 'Service principals can use Fabric APIs',\n"
-                  "  give the identity Contributor on the workspace, and Read on the lakehouse.")
+            print("  403: not allowed in yet. You need access to the workspace (or the shared agent)\n"
+                  "  and Read on the lakehouse behind it.")
         elif "404" in msg:
             print("  404: wrong URL, or the agent isn't published.")
         sys.exit(1)

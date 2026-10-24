@@ -11,3 +11,8 @@ local.settings.json
 **/rayfin/.*.tmp
 .DS_Store
 __pycache__/
+*.tsbuildinfo
+
+# Local tooling, and output that names your own workspace (create_agents.py writes it)
+.claude/
+labs/01-data-agent/published-agents.json
