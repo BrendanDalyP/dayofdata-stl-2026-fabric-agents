@@ -6,7 +6,7 @@ import { colorOf, memberByKey, type AgentKey } from "@/agent/team";
 import { Skeleton } from "@/components/Card";
 import { AnswerLine } from "@/components/AnswerLine";
 import { STATUS, fmtEurShort } from "@/components/viz/common";
-import { setActionStatus, type ActionKind, type ActionRow } from "@/services/actions";
+import { actionTip, setActionStatus, type ActionKind, type ActionRow } from "@/services/actions";
 import { navigate } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -85,7 +85,7 @@ export function ActionsPage() {
                                         <li key={a.id} className={cn("rounded-md border border-border bg-card p-3", a.status === "done" && "opacity-60")}
                                             style={{ borderLeft: `3px solid ${isAgent(a.agent) ? colorOf(a.agent) : "var(--color-border)"}` }}>
                                             <div className="flex items-start gap-2">
-                                                <button type="button" onClick={() => void toggle(a)} aria-label={a.status === "open" ? "Mark done" : "Reopen"}
+                                                <button type="button" onClick={() => void toggle(a)} aria-label={a.status === "open" ? "Mark done" : "Reopen"} title={actionTip(a.status === "open" ? "done" : "reopen")}
                                                     className="mt-0.5 text-muted-foreground hover:text-success focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                                                     <CircleCheck className={cn("icon-size-200", a.status === "done" && "text-success")} />
                                                 </button>

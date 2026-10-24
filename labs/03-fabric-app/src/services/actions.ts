@@ -24,6 +24,30 @@ export interface ActionRow {
     createdAt: Date;
 }
 
+/**
+ * Tooltip for an action button: which Rayfin function runs and what it does.
+ * Keep in step with rulesFor() and planRecovery() in rayfin/functions/src/actions.ts.
+ */
+export function actionTip(kind: ActionKind | "done" | "reopen", about?: string): string {
+    const on = about ? ` for ${about}` : "";
+    switch (kind) {
+        case "recovery-plan":
+            return `buildRecoveryPlan works out the monthly net sales${on} needed Aug–Dec to land the full-year budget, `
+                + "rates it (on track, recoverable, stretch or reset the plan) and saves the plan to the action board. "
+                + "High priority if 5% or more behind budget; due in 7 days.";
+        case "escalation":
+            return `createAction adds a high-priority escalation${on} to the action board for Operations, due in 2 days.`;
+        case "follow-up":
+            return `createAction adds a medium-priority follow-up${on} to the action board, due in 5 days.`;
+        case "watch":
+            return `createAction adds a low-priority watch item${on} to the action board, with a check-in in 30 days.`;
+        case "done":
+            return "setActionStatus marks this action done; it moves to the Done column.";
+        case "reopen":
+            return "setActionStatus reopens this action and puts it back in its priority column.";
+    }
+}
+
 export async function createAction(input: { kind: Exclude<ActionKind, "recovery-plan">; title: string; subject?: string; detail?: string; agent: AgentKey; sourceQuestion?: string }) {
     return getRayfinClient().functions.createAction.invoke({
         kind: input.kind,

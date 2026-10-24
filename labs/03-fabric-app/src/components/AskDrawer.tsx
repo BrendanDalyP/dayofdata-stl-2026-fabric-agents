@@ -4,24 +4,24 @@ import { ArrowRight, ArrowUp, Check, Flag, LifeBuoy, RotateCcw, Siren, Sparkles,
 import { useAsk, type Target } from "@/agent/AskContext";
 import { TEAM, memberByKey, type AgentKey } from "@/agent/team";
 import { AgentAnswer } from "@/components/AgentAnswer";
-import { buildRecoveryPlan, createAction } from "@/services/actions";
+import { actionTip, buildRecoveryPlan, createAction } from "@/services/actions";
 import { gapPct, type CommandData } from "@/queries/overview";
 import { cn } from "@/lib/utils";
 
 /** One quick action per agent: what that agent's function can do right now, from the data on screen. */
-function quickActions(agent: AgentKey, data?: CommandData): Array<{ key: string; label: string; icon: typeof Flag; run: () => Promise<unknown> }> {
+function quickActions(agent: AgentKey, data?: CommandData): Array<{ key: string; label: string; tip: string; icon: typeof Flag; run: () => Promise<unknown> }> {
     if (!data) return [];
     const worst = [...data.accounts].sort((a, b) => gapPct(a) - gapPct(b))[0];
     const fcGap = [...data.forecast].sort((a, b) => (a.forecast / a.budget) - (b.forecast / b.budget))[0];
     if (agent === "sales" && worst) return [
-        { key: `plan:${worst.name}`, label: `Save recovery plan · ${worst.name}`, icon: LifeBuoy, run: () => buildRecoveryPlan(worst, "sales") },
-        { key: `fu:${worst.name}`, label: `Follow up · ${worst.name}`, icon: Flag, run: () => createAction({ kind: "follow-up", title: `Follow up with ${worst.name}`, subject: worst.name, agent: "sales" }) },
+        { key: `plan:${worst.name}`, label: `Save recovery plan · ${worst.name}`, tip: actionTip("recovery-plan", worst.name), icon: LifeBuoy, run: () => buildRecoveryPlan(worst, "sales") },
+        { key: `fu:${worst.name}`, label: `Follow up · ${worst.name}`, tip: actionTip("follow-up", worst.name), icon: Flag, run: () => createAction({ kind: "follow-up", title: `Follow up with ${worst.name}`, subject: worst.name, agent: "sales" }) },
     ];
     if (agent === "operations" && worst) return [
-        { key: `esc:${worst.name}`, label: `Escalate overdue orders · ${worst.name}`, icon: Siren, run: () => createAction({ kind: "escalation", title: `Escalate overdue orders · ${worst.name}`, subject: worst.name, agent: "operations" }) },
+        { key: `esc:${worst.name}`, label: `Escalate overdue orders · ${worst.name}`, tip: actionTip("escalation", `${worst.name}'s overdue orders`), icon: Siren, run: () => createAction({ kind: "escalation", title: `Escalate overdue orders · ${worst.name}`, subject: worst.name, agent: "operations" }) },
     ];
     if (agent === "planning" && fcGap && fcGap.forecast < fcGap.budget) return [
-        { key: `fc:${fcGap.productType}`, label: `Flag forecast gap · ${fcGap.productType}`, icon: Flag, run: () => createAction({ kind: "follow-up", title: `Forecast below budget · ${fcGap.productType}`, subject: fcGap.productType, agent: "planning" }) },
+        { key: `fc:${fcGap.productType}`, label: `Flag forecast gap · ${fcGap.productType}`, tip: actionTip("follow-up", `the ${fcGap.productType} forecast gap`), icon: Flag, run: () => createAction({ kind: "follow-up", title: `Forecast below budget · ${fcGap.productType}`, subject: fcGap.productType, agent: "planning" }) },
     ];
     return [];
 }
@@ -105,7 +105,7 @@ export function AskDrawer() {
                                         const Icon = st === "done" ? Check : a.icon;
                                         return (
                                             <button key={a.key} type="button" disabled={st === "busy" || st === "done"} onClick={() => void runAct(a.key, a.run)}
-                                                title={st?.startsWith("Failed") ? st : "Runs a Rayfin function and adds it to the action board"}
+                                                title={st?.startsWith("Failed") ? st : a.tip}
                                                 className={cn("inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                                     st === "done" ? "border border-border text-success" : st?.startsWith("Failed") ? "border border-destructive/50 text-destructive" : "bg-brand text-on-brand hover:opacity-90",
                                                     st === "busy" && "trace-pulse")}>

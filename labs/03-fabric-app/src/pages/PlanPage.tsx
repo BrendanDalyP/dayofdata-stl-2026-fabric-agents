@@ -11,7 +11,7 @@ import { GapBars, type GapRow } from "@/components/viz/GapBars";
 import { fmtEurShort } from "@/components/viz/common";
 import { eur, pct } from "@/queries/overview";
 import { loadPlanData, type PlanData } from "@/queries/opsplan";
-import { createAction } from "@/services/actions";
+import { actionTip, createAction } from "@/services/actions";
 import { cn } from "@/lib/utils";
 
 const isJanJul = (d: Date) => d.getUTCFullYear() === 2022 && d.getUTCMonth() < 7;
@@ -122,7 +122,7 @@ export function PlanPage() {
                 subtitle="Full-year 2022 forecast against budget, % · click to ask"
                 source="SpaceParts lakehouse · app.forecast_vs_budget"
                 actions={k?.worstType && k.worstType.gap < 0 && (
-                    <button type="button" disabled={flag === "busy" || flag === "done"} onClick={() => void flagGap()} title={flag?.startsWith("Failed") ? flag : "Runs createAction (a Rayfin function)"}
+                    <button type="button" disabled={flag === "busy" || flag === "done"} onClick={() => void flagGap()} title={flag?.startsWith("Failed") ? flag : actionTip("follow-up", k?.worstType ? `the ${k.worstType.label} forecast gap` : "the forecast gap")}
                         className={cn("inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             flag === "done" ? "border border-border text-success" : "bg-brand text-on-brand hover:opacity-90", flag === "busy" && "trace-pulse")}>
                         {flag === "done" ? <Check className="icon-size-100" /> : <Flag className="icon-size-100" />}{flag === "done" ? "Flagged" : `Flag ${k.worstType.label}`}

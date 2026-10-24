@@ -12,7 +12,7 @@ import { VarianceHeatmap } from "@/components/viz/VarianceHeatmap";
 import { GapStrip } from "@/components/viz/GapStrip";
 import { C, STATUS, StatusBadge, statusOf, fmtEurShort } from "@/components/viz/common";
 import { MONTHS_REMAINING, eur, gapPct, pct, type Subject } from "@/queries/overview";
-import { buildRecoveryPlan, createAction } from "@/services/actions";
+import { actionTip, buildRecoveryPlan, createAction } from "@/services/actions";
 import type { RecoveryPlanResult } from "../../rayfin/functions/src/types";
 import { navigate } from "@/lib/nav";
 import { cn } from "@/lib/utils";
@@ -123,8 +123,8 @@ function AccountDetail({ a }: { a: Subject }) {
             void refreshActions();
         } catch (e) { setSaved((s) => ({ ...s, [key]: `Failed: ${e instanceof Error ? e.message : e}` })); }
     };
-    const Btn = ({ k, label, icon: Icon, fn, primary }: { k: string; label: string; icon: typeof Flag; fn: () => Promise<unknown>; primary?: boolean }) => (
-        <button type="button" disabled={saved[k] === "busy" || saved[k] === "done"} onClick={() => void run(k, fn)} title={saved[k]?.startsWith("Failed") ? saved[k] : "Runs a Rayfin function"}
+    const Btn = ({ k, label, tip, icon: Icon, fn, primary }: { k: string; label: string; tip: string; icon: typeof Flag; fn: () => Promise<unknown>; primary?: boolean }) => (
+        <button type="button" disabled={saved[k] === "busy" || saved[k] === "done"} onClick={() => void run(k, fn)} title={saved[k]?.startsWith("Failed") ? saved[k] : tip}
             className={cn("inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 saved[k] === "done" ? "border border-border text-success" : primary ? "bg-brand text-on-brand hover:opacity-90" : "border border-border text-foreground hover:bg-muted",
                 saved[k] === "busy" && "trace-pulse")}>
@@ -140,9 +140,9 @@ function AccountDetail({ a }: { a: Subject }) {
                     <h2 className="font-heading text-500 font-semibold text-emphasis-foreground">{a.name}</h2>
                     <StatusBadge gapPct={g} />
                     <div className="ml-auto flex flex-wrap gap-1.5">
-                        <Btn k="fu" label="Follow up" icon={Flag} fn={() => createAction({ kind: "follow-up", title: `Follow up with ${a.name}`, subject: a.name, detail: `${pct(g, true)} vs budget Jan–Jul`, agent: "sales" })} />
-                        <Btn k="watch" label="Watch" icon={Eye} fn={() => createAction({ kind: "watch", title: `Watch ${a.name}`, subject: a.name, detail: `${pct(g, true)} vs budget Jan–Jul`, agent: "sales" })} />
-                        <Btn k="esc" label="Escalate orders" icon={Siren} fn={() => createAction({ kind: "escalation", title: `Escalate overdue orders · ${a.name}`, subject: a.name, detail: `Raised from the Accounts view (${pct(g, true)} vs budget)`, agent: "operations" })} />
+                        <Btn k="fu" label="Follow up" tip={actionTip("follow-up", a.name)} icon={Flag} fn={() => createAction({ kind: "follow-up", title: `Follow up with ${a.name}`, subject: a.name, detail: `${pct(g, true)} vs budget Jan–Jul`, agent: "sales" })} />
+                        <Btn k="watch" label="Watch" tip={actionTip("watch", a.name)} icon={Eye} fn={() => createAction({ kind: "watch", title: `Watch ${a.name}`, subject: a.name, detail: `${pct(g, true)} vs budget Jan–Jul`, agent: "sales" })} />
+                        <Btn k="esc" label="Escalate orders" tip={actionTip("escalation", `${a.name}'s overdue orders`)} icon={Siren} fn={() => createAction({ kind: "escalation", title: `Escalate overdue orders · ${a.name}`, subject: a.name, detail: `Raised from the Accounts view (${pct(g, true)} vs budget)`, agent: "operations" })} />
                     </div>
                 </div>
                 <dl className="mt-2 grid grid-cols-4 gap-3">
@@ -171,7 +171,7 @@ function AccountDetail({ a }: { a: Subject }) {
                             </dl>
                             <div className="mt-auto">
                                 {g < 0
-                                    ? <Btn k="plan" label="Save recovery plan" icon={LifeBuoy} primary fn={() => buildRecoveryPlan(a, "sales")} />
+                                    ? <Btn k="plan" label="Save recovery plan" tip={actionTip("recovery-plan", a.name)} icon={LifeBuoy} primary fn={() => buildRecoveryPlan(a, "sales")} />
                                     : <p className="text-200 text-muted-foreground">Ahead of budget — no recovery needed.</p>}
                             </div>
                         </>

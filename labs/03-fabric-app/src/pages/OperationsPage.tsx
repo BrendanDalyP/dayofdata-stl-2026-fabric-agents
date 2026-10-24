@@ -13,7 +13,7 @@ import { Sparkline } from "@/components/viz/Sparkline";
 import { fmtEurShort } from "@/components/viz/common";
 import { eur, pct } from "@/queries/overview";
 import { loadOpsData, sumBy, type OpsData } from "@/queries/opsplan";
-import { createAction } from "@/services/actions";
+import { actionTip, createAction } from "@/services/actions";
 import { cn } from "@/lib/utils";
 
 const ops = memberByKey("operations");
@@ -112,7 +112,7 @@ export function OperationsPage() {
                                         </span>
                                     </button>
                                     <button type="button" disabled={st === "busy" || st === "done"} onClick={() => void escalate(account, value)}
-                                        title={st?.startsWith("Failed") ? st : "Runs createAction (a Rayfin function)"} aria-label={`Escalate overdue orders for ${account}`}
+                                        title={st?.startsWith("Failed") ? st : actionTip("escalation", `${account}'s overdue orders`)} aria-label={`Escalate overdue orders for ${account}`}
                                         className={cn("inline-flex items-center gap-1 rounded-md border px-2 py-1 text-100 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                             st === "done" ? "border-border text-success" : st?.startsWith("Failed") ? "border-destructive/50 text-destructive" : "border-border text-foreground hover:bg-muted",
                                             st === "busy" && "trace-pulse")}>

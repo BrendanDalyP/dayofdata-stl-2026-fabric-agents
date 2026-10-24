@@ -3,7 +3,7 @@ import { ArrowRight, Check, ClipboardList, Eye, Flag, LifeBuoy, Siren } from "lu
 import { memberByKey, type AgentKey } from "@/agent/team";
 import type { Reply, Target } from "@/agent/AskContext";
 import { RichAnswer } from "@/components/answer/RichAnswer";
-import { buildRecoveryPlan, createAction } from "@/services/actions";
+import { actionTip, buildRecoveryPlan, createAction } from "@/services/actions";
 import { eur, pct, type CommandData, type Subject } from "@/queries/overview";
 import type { RecoveryPlanResult } from "../../rayfin/functions/src/types";
 import { cn } from "@/lib/utils";
@@ -54,21 +54,21 @@ export function AgentAnswer({ question, reply, data, focus, compact, onRun, onAs
     const summary = text.split("\n").find((l) => l.trim() && !l.startsWith("|"))?.replace(/[*_#]/g, "").slice(0, 300);
     const sources = member.grounded.filter((t) => text.includes(t));
 
-    type Btn = { key: string; label: string; icon: typeof Flag; run: () => Promise<unknown>; primary?: boolean };
+    type Btn = { key: string; label: string; tip: string; icon: typeof Flag; run: () => Promise<unknown>; primary?: boolean };
     const buttons: Btn[] = [];
     for (const s of subjects) {
         const short = s.name.replace(" Region", "");
-        if (reply.agent === "sales" && s.actualYtd < s.budgetYtd) buttons.push({ key: `plan:${s.name}`, label: `Recovery plan · ${short}`, icon: LifeBuoy, primary: true, run: () => buildRecoveryPlan(s, "sales") });
-        if (reply.agent === "operations") buttons.push({ key: `esc:${s.name}`, label: `Escalate orders · ${short}`, icon: Siren, primary: true, run: () => createAction({ kind: "escalation", title: `Escalate overdue orders · ${s.name}`, subject: s.name, detail: summary, agent: "operations", sourceQuestion: question }) });
-        if (reply.agent === "sales") buttons.push({ key: `fu:${s.name}`, label: `Follow up · ${short}`, icon: Flag, run: () => createAction({ kind: "follow-up", title: `Follow up with ${s.name}`, subject: s.name, detail: summary, agent: "sales", sourceQuestion: question }) });
-        buttons.push({ key: `watch:${s.name}`, label: `Watch · ${short}`, icon: Eye, run: () => createAction({ kind: "watch", title: `Watch ${s.name}`, subject: s.name, detail: summary, agent: reply.agent, sourceQuestion: question }) });
+        if (reply.agent === "sales" && s.actualYtd < s.budgetYtd) buttons.push({ key: `plan:${s.name}`, label: `Recovery plan · ${short}`, tip: actionTip("recovery-plan", s.name), icon: LifeBuoy, primary: true, run: () => buildRecoveryPlan(s, "sales") });
+        if (reply.agent === "operations") buttons.push({ key: `esc:${s.name}`, label: `Escalate orders · ${short}`, tip: actionTip("escalation", `${s.name}'s overdue orders`), icon: Siren, primary: true, run: () => createAction({ kind: "escalation", title: `Escalate overdue orders · ${s.name}`, subject: s.name, detail: summary, agent: "operations", sourceQuestion: question }) });
+        if (reply.agent === "sales") buttons.push({ key: `fu:${s.name}`, label: `Follow up · ${short}`, tip: actionTip("follow-up", s.name), icon: Flag, run: () => createAction({ kind: "follow-up", title: `Follow up with ${s.name}`, subject: s.name, detail: summary, agent: "sales", sourceQuestion: question }) });
+        buttons.push({ key: `watch:${s.name}`, label: `Watch · ${short}`, tip: actionTip("watch", s.name), icon: Eye, run: () => createAction({ kind: "watch", title: `Watch ${s.name}`, subject: s.name, detail: summary, agent: reply.agent, sourceQuestion: question }) });
     }
     if (reply.agent === "planning" && data) {
         const pt = data.forecast.find((f) => text.includes(f.productType) && f.forecast < f.budget);
-        if (pt) buttons.push({ key: `fc:${pt.productType}`, label: `Flag forecast gap · ${pt.productType}`, icon: Flag, primary: true, run: () => createAction({ kind: "follow-up", title: `Forecast below budget · ${pt.productType}`, subject: pt.productType, detail: summary, agent: "planning", sourceQuestion: question }) });
+        if (pt) buttons.push({ key: `fc:${pt.productType}`, label: `Flag forecast gap · ${pt.productType}`, tip: actionTip("follow-up", `the ${pt.productType} forecast gap`), icon: Flag, primary: true, run: () => createAction({ kind: "follow-up", title: `Forecast below budget · ${pt.productType}`, subject: pt.productType, detail: summary, agent: "planning", sourceQuestion: question }) });
     }
     if (!buttons.length && reply.result) {
-        buttons.push({ key: "save", label: "Add to action board", icon: ClipboardList, run: () => createAction({ kind: "follow-up", title: question.slice(0, 190), detail: summary, agent: reply.agent, sourceQuestion: question }) });
+        buttons.push({ key: "save", label: "Add to action board", tip: actionTip("follow-up", "this question and its answer"), icon: ClipboardList, run: () => createAction({ kind: "follow-up", title: question.slice(0, 190), detail: summary, agent: reply.agent, sourceQuestion: question }) });
     }
 
     const handoffs = member.handoffs
@@ -119,7 +119,7 @@ export function AgentAnswer({ question, reply, data, focus, compact, onRun, onAs
                                 const BIcon = st === "done" ? Check : b.icon;
                                 return (
                                     <button key={b.key} type="button" disabled={st === "busy" || st === "done"} onClick={() => onRun(b.key, b.run)}
-                                        title={st?.startsWith("Failed") ? st : "Runs a Rayfin function"}
+                                        title={st?.startsWith("Failed") ? st : b.tip}
                                         className={cn("inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                             st === "done" ? "border border-border text-success" :
                                                 st?.startsWith("Failed") ? "border border-destructive/50 text-destructive" :
