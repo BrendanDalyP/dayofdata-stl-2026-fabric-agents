@@ -22,8 +22,8 @@ export function useAppTheme() {
         // Check for .dark class
         if (document.documentElement.classList.contains("dark")) return true;
 
-        // The command center is designed dark-first; light is one click away.
-        return true;
+        // Light by default; dark is a selected palette, one click away.
+        return false;
     });
 
     useEffect(() => {

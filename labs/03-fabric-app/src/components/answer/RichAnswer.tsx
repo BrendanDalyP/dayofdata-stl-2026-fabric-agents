@@ -43,10 +43,10 @@ export function RichAnswer({ text, color, highlights }: { text: string; color: s
             const k = `${key}-${at}`;
             const lower = t.toLowerCase();
             if (nameSet.has(lower)) out.push(<strong key={k} className="font-semibold text-emphasis-foreground">{t}</strong>);
-            else if (/^[a-z]+(_[a-z]+)+$/.test(t)) out.push(<span key={k} className="font-monospace text-[0.92em]" style={{ color }}>{t}</span>);
+            else if (/^[a-z]+(_[a-z]+)+$/.test(t)) out.push(<code key={k} className="font-monospace text-[0.9em] text-muted-foreground">{t}</code>);
             else if (/^[−–-]/.test(t) || /^(behind|below|short|shortfall|miss|missed|overdue|late)$/.test(lower)) out.push(<span key={k} className="font-semibold text-destructive">{t}</span>);
-            else if (/^\+/.test(t)) out.push(<span key={k} className="font-semibold text-success">{t}</span>);
-            else out.push(<span key={k} className="font-numeric font-semibold" style={{ color }}>{t}</span>);
+            else if (/^\+/.test(t)) out.push(<span key={k} className="font-semibold" style={{ color: "#2a78d6" }}>{t}</span>);
+            else out.push(<span key={k} className="tabular font-semibold text-emphasis-foreground">{t}</span>);
             last = at + t.length;
         }
         if (last < s.length) out.push(s.slice(last));
@@ -74,7 +74,7 @@ export function RichAnswer({ text, color, highlights }: { text: string; color: s
     );
 
     return (
-        <div className="prose-answer text-300 leading-400 text-foreground">
+        <div className="prose-answer text-300 leading-400 text-foreground" data-agent-color={color}>
             {splitAnswer(text).map((part, i) =>
                 part.type === "table" ? (
                     <AnswerChart key={i} table={part.table} raw={part.raw} color={color} />

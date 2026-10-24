@@ -35,35 +35,9 @@ export interface TeamReply {
   /** Opaque state to send back with the next question to the same agent. */
   conversation: string;
   protocol: 'mcp' | 'assistants';
-  /** Which identity the agent ran the query as. */
-  identity: 'service principal' | 'app identity';
+  /** The identity the agent ran the query as: the Rayfin app (the app item's owner). */
+  identity: 'app identity';
   elapsedMs: number;
-}
-
-/** Reads an optional secret (`npx rayfin secret set <NAME>`; falls back to process.env locally). */
-function optionalSecret(ctx: RayfinContext<AppSchema, AudienceType.Fabric>, name: string): string | undefined {
-  try {
-    const value = (ctx.Secrets as unknown as Record<string, string | undefined>)[name];
-    return value?.trim() || undefined;
-  } catch {
-    return process.env[name]?.trim() || undefined;
-  }
-}
-
-/**
- * Two ways to get a token. Choose on purpose:
- *  - AGENT_TENANT_ID + AGENT_CLIENT_ID + AGENT_CLIENT_SECRET set → the app registration
- *    (service principal) from Lab 02. Sees only what you granted it.
- *  - otherwise → the Rayfin app identity (ctx.Tokens.Fabric), i.e. the owner of the app item.
- */
-function getFabricAuth(ctx: RayfinContext<AppSchema, AudienceType.Fabric>): { auth: AgentAuth; identity: TeamReply['identity'] } {
-  const tenantId = optionalSecret(ctx, 'AGENT_TENANT_ID');
-  const clientId = optionalSecret(ctx, 'AGENT_CLIENT_ID');
-  const clientSecret = optionalSecret(ctx, 'AGENT_CLIENT_SECRET');
-  if (tenantId && clientId && clientSecret) {
-    return { auth: { kind: 'servicePrincipal', tenantId, clientId, clientSecret }, identity: 'service principal' };
-  }
-  return { auth: { kind: 'token', getToken: async () => ctx.Tokens.Fabric }, identity: 'app identity' };
 }
 
 // NOTE: the context parameter must be annotated as RayfinContext<…> right here, not through a
@@ -82,7 +56,9 @@ udf.func(
     if (!q) throw new Error('Ask a question.');
     if (q.length > 1000) throw new Error('Keep questions under 1,000 characters.');
 
-    const { auth, identity } = getFabricAuth(ctx);
+    // The app calls the agent as itself: a Fabric token for the Rayfin app identity.
+    // No app registration, no secrets.
+    const auth: AgentAuth = { getToken: async () => ctx.Tokens.Fabric };
     const state = conversation && conversation !== '-' ? conversation : undefined;
     const reply = await askDataAgent({ agentUrl: AGENTS[agent].url, question: q, conversation: state, auth });
 
@@ -92,7 +68,7 @@ udf.func(
       answer: reply.answer,
       conversation: reply.conversation,
       protocol: reply.protocol,
-      identity,
+      identity: 'app identity',
       elapsedMs: reply.durationMs,
     };
   },

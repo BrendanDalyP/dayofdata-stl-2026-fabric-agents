@@ -13,8 +13,8 @@ SpaceParts lakehouse ──▶ 3 data agents (Sales Analyst · Operations · Pla
 | --- | --- | --- |
 | [00 · Prerequisites](labs/00-prereqs.md) | Capacity, tenant settings, tools, the SpaceParts data | 15 min |
 | [01 · Data agents](labs/01-data-agent/README.md) | Three agents with scoped tables, instructions and example queries, checked against SQL and evaluated with the SDK | 45 min |
-| [02 · Call the agents over MCP](labs/02-connectivity/README.md) | An MCP client in Python against all three agents; service principal optional (least privilege) | 15 min |
-| [03 · Fabric app](labs/03-fabric-app/README.md) | A Rayfin app: live charts through a lakehouse connector, the agent team through a server-side function, saved insights in the app's own database | 40 min |
+| [02 · Call the agents over MCP](labs/02-connectivity/README.md) | An MCP client in Python against all three agents | 15 min |
+| [03 · Fabric app](labs/03-fabric-app/README.md) | A Rayfin app: tabs of live charts through a lakehouse connector, the agent team in an Ask drawer and inline briefs, action buttons backed by Rayfin functions | 45 min |
 
 ## What makes the agents right
 
@@ -49,7 +49,7 @@ scripts/discover.ps1  find workspaces, lakehouses and tables
 ## Status of the pieces (October 2026)
 
 - **Fabric data agents:** generally available. The agent's **MCP endpoint** is the supported way to call it from code. Older samples use the OpenAI Assistants-style endpoint, which Microsoft now steers away from.
-- **Identity:** the app calls the agents as Rayfin's app identity, with no app registration. A service principal is optional for least privilege; Microsoft's pages disagree on support, so test it in your tenant (Lab 02 §4).
+- **Identity:** the app calls the agents as itself (Rayfin app identity) — no app registration, no secrets.
 - **Fabric Apps / Rayfin:** preview. Re-check commands against the docs before you build.
 
 ## Credits

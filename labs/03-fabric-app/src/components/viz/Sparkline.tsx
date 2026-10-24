@@ -8,7 +8,7 @@ export function Sparkline({ values, color, width = 110, height = 30, band }: { v
     const line = d3.line<number>().x((_, i) => x(i)).y((v) => y(v)).curve(d3.curveMonotoneX);
     return (
         <svg width={width} height={height} aria-hidden>
-            {band && <path d={line(band) ?? ""} fill="none" stroke="#f2c811" strokeWidth={1.5} strokeDasharray="3 2" />}
+            {band && <path d={line(band) ?? ""} fill="none" stroke="#52514e" strokeWidth={1.5} strokeDasharray="3 2" />}
             <path d={line(values) ?? ""} fill="none" stroke={color} strokeWidth={2} />
             <circle cx={x(values.length - 1)} cy={y(values.at(-1)!)} r={2.5} fill={color} />
         </svg>

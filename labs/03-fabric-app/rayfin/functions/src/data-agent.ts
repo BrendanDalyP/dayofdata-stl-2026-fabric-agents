@@ -6,9 +6,10 @@
 // Microsoft now documents MCP as the way to call an agent; the legacy path is kept because
 // existing samples (and some tenants) still use it.
 
-export type AgentAuth =
-  | { kind: 'servicePrincipal'; tenantId: string; clientId: string; clientSecret: string }
-  | { kind: 'token'; getToken: () => Promise<string> };
+/** How to get a bearer token for https://api.fabric.microsoft.com (the app passes ctx.Tokens.Fabric). */
+export interface AgentAuth {
+  getToken: () => Promise<string>;
+}
 
 export interface AgentReply {
   answer: string;
@@ -42,30 +43,13 @@ export async function askDataAgent(opts: AskOptions): Promise<AgentReply> {
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
-async function getToken(auth: AgentAuth, scope: string): Promise<string> {
-  if (auth.kind === 'token') return auth.getToken();
-
-  const res = await fetch(`https://login.microsoftonline.com/${auth.tenantId}/oauth2/v2.0/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: auth.clientId,
-      client_secret: auth.clientSecret,
-      scope,
-    }),
-  });
-  const body = (await res.json().catch(() => ({}))) as Record<string, string>;
-  if (!res.ok || !body.access_token) {
-    throw new Error(`Entra sign-in failed (${res.status}): ${body.error_description ?? body.error ?? 'no token returned'}`);
-  }
-  return body.access_token;
+async function getToken(auth: AgentAuth, _scope: string): Promise<string> {
+  return auth.getToken();
 }
 
 function describeHttpError(status: number, body: string): string {
-  if (status === 401) return 'The agent rejected the token (401). Check the app registration credentials.';
-  if (status === 403)
-    return "Access denied (403). Check: 'Service principals can use Fabric APIs' tenant setting, the identity has workspace access, and Read on each data source.";
+  if (status === 401) return 'The agent rejected the token (401).';
+  if (status === 403) return 'Access denied (403). The app item owner needs access to the agent and Read on each data source.';
   if (status === 404) return 'Agent not found (404). Check the URL and that the agent is published.';
   return `HTTP ${status}: ${body.slice(0, 500)}`;
 }

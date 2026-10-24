@@ -20,7 +20,7 @@ export function DeliveryStrip({ data }: { data: DeliveryPoint[] }) {
             <svg width={width} height={height} role="img" aria-label="On-time delivery and late-delivery penalties by month">
                 {yo.ticks(4).map((t) => (
                     <g key={t}>
-                        <line x1={m.l} x2={width - m.r} y1={yo(t)} y2={yo(t)} className="stroke-border" strokeDasharray="2 4" />
+                        <line x1={m.l} x2={width - m.r} y1={yo(t)} y2={yo(t)} className="stroke-border" />
                         <text x={m.l - 4} y={yo(t) + 3} textAnchor="end" className="fill-muted-foreground font-numeric text-100">{t}%</text>
                     </g>
                 ))}
@@ -28,12 +28,12 @@ export function DeliveryStrip({ data }: { data: DeliveryPoint[] }) {
                     <text key={t} x={width - m.r + 4} y={yp(t) + 3} className="fill-muted-foreground font-numeric text-100">{fmtEurShort(t)}</text>
                 ))}
                 {data.map((d) => (
-                    <rect key={+d.month} x={x(d.month)} y={yp(d.penalties)} width={x.bandwidth()} height={yp(0) - yp(d.penalties)} fill={C.yellow} opacity={0.55} rx={1}>
+                    <rect key={+d.month} x={x(d.month)} y={yp(d.penalties)} width={x.bandwidth()} height={yp(0) - yp(d.penalties)} fill={C.plan} opacity={0.55} rx={1}>
                         <title>{`${monthLong(d.month)}: ${d.onTimePct.toFixed(1)}% on time · penalties ${fmtEurShort(d.penalties)}`}</title>
                     </rect>
                 ))}
-                <path d={line(data) ?? ""} fill="none" stroke={C.blue} strokeWidth={2.5} />
-                {data.map((d) => <circle key={+d.month} cx={x(d.month)! + x.bandwidth() / 2} cy={yo(d.onTimePct)} r={2.5} fill={C.blue} />)}
+                <path d={line(data) ?? ""} fill="none" stroke={C.series} strokeWidth={2.5} />
+                {data.map((d) => <circle key={+d.month} cx={x(d.month)! + x.bandwidth() / 2} cy={yo(d.onTimePct)} r={2.5} fill={C.series} />)}
                 {last && (
                     <text x={x(last.month)! + x.bandwidth() / 2} y={yo(last.onTimePct) - 8} textAnchor="end" className="fill-emphasis-foreground font-numeric text-200 font-semibold">
                         {last.onTimePct.toFixed(1)}%

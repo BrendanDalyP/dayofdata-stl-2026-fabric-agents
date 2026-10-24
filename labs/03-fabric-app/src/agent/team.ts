@@ -16,7 +16,7 @@ export interface TeamMember {
     name: string;
     /** Short tag shown on tabs and answers ("SALES", "OPS"). */
     tag: string;
-    /** Each agent's colour, used on its tab, answers and hand-offs. */
+    /** Agent identity colour (categorical slots 1–3, validated for CVD). Used only on the agent's mark. */
     color: string;
     role: string;
     grounded: string[];
@@ -29,7 +29,7 @@ export const TEAM: TeamMember[] = [
         key: "sales",
         name: "Sales Analyst",
         tag: "Sales",
-        color: "#38bdf8",
+        color: "#2a78d6",
         role: "net sales against budget, in euros, by key account, region and product",
         grounded: ["invoices", "budget", "customers", "regions", "products", "budget_rate", "exchange_rate"],
         chips: [
@@ -47,7 +47,7 @@ export const TEAM: TeamMember[] = [
         key: "operations",
         name: "Operations",
         tag: "Ops",
-        color: "#2dd4a7",
+        color: "#eb6834",
         role: "order backlog, on-time delivery and penalties",
         grounded: ["orders", "order_status", "invoices", "customers", "regions", "products"],
         chips: [
@@ -65,7 +65,7 @@ export const TEAM: TeamMember[] = [
         key: "planning",
         name: "Planning",
         tag: "Planning",
-        color: "#a78bfa",
+        color: "#1baf7a",
         role: "2022 forecast against budget, territories and brands",
         grounded: ["forecast", "budget", "invoices", "products", "brands", "regions"],
         chips: [
@@ -82,5 +82,5 @@ export const TEAM: TeamMember[] = [
 ];
 
 export const memberByKey = (key: AgentKey) => TEAM.find((m) => m.key === key)!;
-export const TEAM_COLOR = "#f5c542";
+export const TEAM_COLOR = "#52514e";
 export const colorOf = (key: AgentKey | "team") => (key === "team" ? TEAM_COLOR : memberByKey(key).color);

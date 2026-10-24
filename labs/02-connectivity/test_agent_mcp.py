@@ -3,10 +3,7 @@
     python test_agent_mcp.py "What were net sales in euros this year?"
     python test_agent_mcp.py --agent operations "What is the open order backlog in euros by order status?"
 
-Identity:
-  * AGENT_TENANT_ID, AGENT_CLIENT_ID and AGENT_CLIENT_SECRET set (in .env or the environment)
-    → the app registration (service principal).
-  * otherwise → your `az login` (a user).
+Identity: your `az login`. (The Lab 03 app calls the same endpoint as itself — the Rayfin app identity.)
 
 Agent URLs come from ../01-data-agent/published-agents.json (written by create_agents.py),
 or pass --url.
@@ -18,7 +15,7 @@ from __future__ import annotations
 
 import argparse, asyncio, json, os, pathlib, sys, time
 
-from azure.identity import AzureCliCredential, ClientSecretCredential
+from azure.identity import AzureCliCredential
 from mcp import ClientSession
 import mcp.client.streamable_http as mcp_http
 
@@ -35,21 +32,8 @@ def open_transport(url: str, headers: dict[str, str]):
 HERE = pathlib.Path(__file__).parent
 
 
-def load_dotenv(path: pathlib.Path) -> None:
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            k, v = line.split("=", 1)
-            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
-
-
 def get_token() -> tuple[str, str]:
-    tenant, client, secret = (os.environ.get(k) for k in ("AGENT_TENANT_ID", "AGENT_CLIENT_ID", "AGENT_CLIENT_SECRET"))
-    if tenant and client and secret:
-        return ClientSecretCredential(tenant, client, secret).get_token(SCOPE).token, f"service principal {client[:4]}…"
-    return AzureCliCredential().get_token(SCOPE).token, "user (az login)"
+    return AzureCliCredential().get_token(SCOPE).token, "you (az login)"
 
 
 async def ask(url: str, question: str) -> None:
@@ -72,7 +56,6 @@ async def ask(url: str, question: str) -> None:
 
 
 def main() -> None:
-    load_dotenv(HERE / ".env")
     p = argparse.ArgumentParser()
     p.add_argument("question")
     p.add_argument("--agent", default="sales-analyst", help="key in published-agents.json")

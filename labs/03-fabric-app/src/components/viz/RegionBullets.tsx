@@ -1,45 +1,40 @@
 import * as d3 from "d3";
 
 import type { Subject } from "@/queries/overview";
-import { C, fmtEurShort, useWidth } from "./common";
+import { C, fmtEurShort, useSize } from "./common";
 
 /**
- * Bullet charts: Jan–Jul 2022 net sales (bar) against budget (tick) per region,
- * with 90% / 100% / 110% budget bands behind each bar.
+ * Bullet charts: Jan–Jul 2022 net sales (bar) against budget (ink tick) per region,
+ * with a 90–110% band behind each bar. Rows share the container height.
  */
-export function RegionBullets({ regions, focus, onSelect }: { regions: Subject[]; focus?: string; onSelect: (s: Subject) => void }) {
-    const [ref, width] = useWidth<HTMLDivElement>(420);
+export function RegionBullets({ regions, onSelect }: { regions: Subject[]; onSelect: (s: Subject) => void }) {
+    const [ref, { width, height }] = useSize<HTMLDivElement>();
     const rows = [...regions].sort((a, b) => b.budgetYtd - a.budgetYtd);
-    const labelW = Math.min(150, width * 0.36);
-    const valueW = 58;
-    const rowH = 24;
+    const labelW = Math.min(132, width * 0.34);
+    const valueW = 52;
+    const rowH = Math.max(14, Math.min(24, height / Math.max(1, rows.length)));
     const max = d3.max(rows, (r) => Math.max(r.actualYtd, r.budgetYtd * 1.1)) ?? 1;
-    const x = d3.scaleLinear().domain([0, max]).range([0, width - labelW - valueW - 8]);
+    const x = d3.scaleLinear().domain([0, max]).range([0, Math.max(40, width - labelW - valueW - 8)]);
+    const barH = Math.max(4, rowH * 0.36);
 
     return (
-        <div ref={ref}>
-            <svg width={width} height={rows.length * rowH + 4} role="img" aria-label="Net sales against budget by region, Jan–Jul 2022">
+        <div ref={ref} className="h-full min-h-0 overflow-hidden">
+            <svg width={width} height={rows.length * rowH} role="img" aria-label="Net sales against budget by region, Jan–Jul 2022">
                 {rows.map((r, i) => {
-                    const y = i * rowH;
                     const g = (r.actualYtd / r.budgetYtd - 1) * 100;
-                    const isFocus = focus === r.name;
                     return (
-                        <g key={r.name} transform={`translate(0,${y})`} className="cursor-pointer" onClick={() => onSelect(r)}>
+                        <g key={r.name} transform={`translate(0,${i * rowH})`} className="cursor-pointer" onClick={() => onSelect(r)}>
                             <title>{`${r.name}: ${fmtEurShort(r.actualYtd)} vs budget ${fmtEurShort(r.budgetYtd)} (${g.toFixed(1)}%)`}</title>
-                            <text x={labelW - 6} y={rowH / 2 + 3} textAnchor="end" className={isFocus ? "fill-emphasis-foreground text-200 font-semibold" : "fill-foreground text-200"}>
-                                {r.name.replace(" Region", "")}
-                            </text>
+                            <rect x={0} y={0} width={width} height={rowH} fill="transparent" />
+                            <text x={labelW - 8} y={rowH / 2 + 4} textAnchor="end" className="fill-foreground text-200">{r.name.replace(" Region", "")}</text>
                             <g transform={`translate(${labelW},0)`}>
-                                <rect x={0} y={4} width={x(r.budgetYtd * 1.1)} height={rowH - 8} className="fill-muted" rx={2} />
-                                <rect x={0} y={4} width={x(r.budgetYtd)} height={rowH - 8} className="fill-muted" opacity={0.9} rx={2} />
-                                <rect x={0} y={4} width={x(r.budgetYtd * 0.9)} height={rowH - 8} className="fill-border" opacity={0.6} rx={2} />
-                                <rect x={0} y={8} width={x(r.actualYtd)} height={rowH - 16} fill={g < 0 ? C.red : C.green} rx={1} />
-                                <line x1={x(r.budgetYtd)} x2={x(r.budgetYtd)} y1={3} y2={rowH - 3} stroke={C.yellow} strokeWidth={2.5} />
-                                <text x={width - labelW - 4} y={rowH / 2 + 3} textAnchor="end"
-                                    className={g < 0 ? "fill-destructive font-numeric text-100" : "fill-brand-foreground font-numeric text-100"}>
-                                    {g >= 0 ? "+" : ""}{g.toFixed(1)}%
-                                </text>
+                                <rect x={x(r.budgetYtd * 0.9)} y={rowH / 2 - barH} width={x(r.budgetYtd * 1.1) - x(r.budgetYtd * 0.9)} height={barH * 2} fill="var(--color-muted)" rx={2} />
+                                <rect x={0} y={rowH / 2 - barH / 2} width={x(r.actualYtd)} height={barH} rx={2} fill={g < 0 ? C.below : C.series} />
+                                <line x1={x(r.budgetYtd)} x2={x(r.budgetYtd)} y1={rowH / 2 - barH * 1.1} y2={rowH / 2 + barH * 1.1} stroke={C.plan} strokeWidth={2} />
                             </g>
+                            <text x={width - 4} y={rowH / 2 + 4} textAnchor="end" className="tabular text-100 font-semibold" style={{ fill: g < 0 ? C.below : "var(--color-foreground)" }}>
+                                {g >= 0 ? "+" : ""}{g.toFixed(1)}%
+                            </text>
                         </g>
                     );
                 })}

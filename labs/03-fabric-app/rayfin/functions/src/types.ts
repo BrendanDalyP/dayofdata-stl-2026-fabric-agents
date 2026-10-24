@@ -41,7 +41,7 @@ export type AppFunctionsSchema = {
       answer: string;
       conversation: string;
       protocol: 'mcp' | 'assistants';
-      identity: 'service principal' | 'app identity';
+      identity: 'app identity';
       elapsedMs: number;
     };
   };

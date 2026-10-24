@@ -7,10 +7,10 @@
 /* These tokens are consumed directly as CSS variables, so emit them
    even when no Tailwind utility references them. */
 @theme static {
-  --color-brand:            #0f9f80;  /* branded surfaces - mint */
-  --color-brand-foreground: #0b7d65;  /* brand-colored content on standard surfaces */
-  --color-hover:            rgba(0, 0, 0, 0.04);  /* row/cell hover surface in DataGrid + visuals */
-  --color-emphasis-foreground: #111318;  /* page and visual titles, KPI values */
+  --color-brand:            #2a78d6;  /* UI accent - blue (categorical slot 1) */
+  --color-brand-foreground: #1c5cab;  /* brand-colored content on standard surfaces */
+  --color-hover:            rgba(11, 11, 11, 0.04);  /* row/cell hover surface in DataGrid + visuals */
+  --color-emphasis-foreground: #0b0b0b;  /* page and visual titles, KPI values */
   --font-page-title: var(--font-heading);
   --font-page-subtitle: var(--font-base);
   --font-visual-title: var(--font-heading);
@@ -26,28 +26,28 @@
 @theme {
   /* Color tokens — light theme
      Usage: bg-*, text-*, border-* (e.g. bg-brand text-on-brand). */
-  --color-background: #f5f6f8;                                       /* page background */
-  --color-foreground: #1e2126;                                       /* default text */
+  --color-background: #f9f9f7;                                       /* page background */
+  --color-foreground: #0b0b0b;                                       /* default text */
 
-  --color-card: #ffffff;                                             /* card and elevated surfaces */
+  --color-card: #fcfcfb;                                             /* card and elevated surfaces */
 
   --color-on-brand: #ffffff;                                         /* text/icons on brand surfaces */
 
-  --color-muted: #eceef1;                                            /* subtle backgrounds */
-  --color-muted-foreground: #5b616b;                                 /* subdued text */
+  --color-muted: #f0efec;                                            /* subtle backgrounds */
+  --color-muted-foreground: #52514e;                                 /* subdued text */
 
-  --color-accent: #fff7cc;                                           /* accent highlights */
+  --color-accent: #eaf2fc;                                           /* accent highlights */
 
-  --color-destructive: #b10e1c;                                      /* errors & destructive actions */
+  --color-destructive: #d03b3b;                                      /* errors & destructive actions */
   --color-destructive-foreground: #ffffff;
 
-  --color-success: #0e700e;                                          /* success surfaces */
+  --color-success: #0ca30c;                                          /* success surfaces */
   --color-success-foreground: #ffffff;
 
-  --color-signal: #7c3aed;                                           /* telemetry accent */
+  --color-signal: #898781;                                           /* telemetry accent */
 
-  --color-border: #d9dce1;                                           /* default border */
-  --color-ring: #0f9f80;                                             /* focus rings */
+  --color-border: #e1e0d9;                                           /* default border */
+  --color-ring: #2a78d6;                                             /* focus rings */
 
   --shadow-container-2:  var(--shadow-xs);
   --shadow-container-4:  var(--shadow-sm);
@@ -66,7 +66,7 @@
   --radius-6xl: calc(40px * var(--radius-scale, 1));
   --radius-full: calc(9999px * var(--radius-scale, 1));
   --radius: calc(6px * var(--radius-scale, 1));
-  --radius-scale: 0.75;
+  --radius-scale: 1.33;
 
   /* Spacing base unit
      Usage: p-*, m-*, gap-* (e.g. p-4 gap-3) */
@@ -107,10 +107,10 @@
 
   /* Font Families
      Usage: font-* (e.g. font-heading, font-base) */
-  --font-heading: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;           /* headings, titles, display text */
-  --font-base: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;             /* body text, labels, UI controls */
-  --font-monospace: 'JetBrains Mono', Consolas, monospace;     /* code, pre-formatted text */
-  --font-numeric: 'JetBrains Mono', Bahnschrift, monospace;          /* KPI values, numeric displays */
+  --font-heading: 'Segoe UI Variable Display', 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;           /* headings, titles, display text */
+  --font-base: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;             /* body text, labels, UI controls */
+  --font-monospace: 'Cascadia Mono', Consolas, 'Courier New', monospace;     /* code, pre-formatted text */
+  --font-numeric: 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;          /* KPI values, numeric displays */
 
   /* Icon Sizes — 100-based scale
      Usage: icon-size-* custom utility (e.g. icon-size-200) */
@@ -135,33 +135,33 @@
 @layer base {
   .dark {
     /* Color tokens — dark theme */
-    --color-background: #070a10;
-    --color-foreground: #c9d3e2;
+    --color-background: #0d0d0d;
+    --color-foreground: #f0efec;
 
-    --color-card: #0e1420;
+    --color-card: #1a1a19;
 
-    --color-on-brand: #04130e;
+    --color-on-brand: #ffffff;
 
-    --color-muted: #141c2b;
-    --color-muted-foreground: #7f8ca3;
+    --color-muted: #262624;
+    --color-muted-foreground: #c3c2b7;
 
-    --color-accent: #0f2a25;
+    --color-accent: #1c2a3d;
 
-    --color-destructive: #f87171;
+    --color-destructive: #e66767;
     --color-destructive-foreground: #ffffff;
 
-    --color-success: #34d399;
+    --color-success: #0ca30c;
     --color-success-foreground: #ffffff;
 
-    --color-signal: #a78bfa;
+    --color-signal: #898781;
 
-    --color-border: #1e2a3c;
-    --color-ring: #2dd4a7;
+    --color-border: #2c2c2a;
+    --color-ring: #3987e5;
 
-    --color-brand:            #2dd4a7;
-    --color-brand-foreground: #5eead4;
-    --color-hover:            rgba(255, 255, 255, 0.09);
-    --color-emphasis-foreground: #ffffff;
+    --color-brand:            #3987e5;
+    --color-brand-foreground: #86b6ef;
+    --color-hover:            rgba(255, 255, 255, 0.06);
+    --color-emphasis-foreground: #f0efec;
   }
 }
 
@@ -204,7 +204,7 @@ body,
 .prose-answer table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: var(--text-200); }
 .prose-answer th, .prose-answer td { border-bottom: 1px solid var(--color-border); padding: 6px 8px; text-align: left; }
 .prose-answer th { color: var(--color-muted-foreground); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: var(--text-100); }
-.prose-answer td { font-family: var(--font-numeric); }
+.prose-answer td { font-variant-numeric: tabular-nums; }
 .prose-answer p { margin: 6px 0; }
 .prose-answer ul, .prose-answer ol { margin: 6px 0 6px 18px; list-style: disc; }
 .prose-answer ol { list-style: decimal; }
@@ -213,12 +213,9 @@ body,
 .prose-answer pre code { background: none; padding: 0; }
 .prose-answer strong { color: var(--color-emphasis-foreground); }
 
-/* Glass panels (command center look): translucent card over a soft gradient. */
-.dark body {
-  background:
-    radial-gradient(1200px 600px at 15% -10%, rgba(45, 212, 167, 0.07), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgba(167, 139, 250, 0.06), transparent 60%),
-    var(--color-background);
-  background-attachment: fixed;
-}
-.dark .glass { background: rgba(14, 20, 32, 0.78); backdrop-filter: blur(10px); }
+
+/* Flat cards: the .glass class is kept as a plain hairline card so markup doesn't change. */
+.glass { background: var(--color-card); }
+:root { --ink-muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --gap-neutral: #f0efec; }
+.dark { --grid: #2c2c2a; --axis: #383835; --gap-neutral: #383835; }
+.tabular { font-variant-numeric: tabular-nums; }

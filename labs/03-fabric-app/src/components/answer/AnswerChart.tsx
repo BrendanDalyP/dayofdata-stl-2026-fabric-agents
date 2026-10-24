@@ -2,13 +2,14 @@ import { useState } from "react";
 import * as d3 from "d3";
 import { BarChart3, Table2 } from "lucide-react";
 
-import { Markdown } from "@/components/Markdown";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useWidth, fmtEurShort } from "@/components/viz/common";
 import { toNumber, type ParsedTable } from "./parseTables";
 import { cn } from "@/lib/utils";
 
-const RED = "#e05252";
-const GREEN = "#2fa572";
+const RED = "#d03b3b";
+const GREEN = "#2a78d6"; // diverging "above" pole
 
 /** Chart for a table the agent returned, with a toggle back to the table itself. */
 export function AnswerChart({ table, raw, color }: { table: ParsedTable; raw: string; color: string }) {
@@ -35,7 +36,7 @@ export function AnswerChart({ table, raw, color }: { table: ParsedTable; raw: st
             </div>
             <div ref={ref}>
                 {view === "table" ? (
-                    <div className="overflow-x-auto"><Markdown>{raw}</Markdown></div>
+                    <div className="prose-answer overflow-x-auto text-200"><ReactMarkdown remarkPlugins={[remarkGfm]}>{raw}</ReactMarkdown></div>
                 ) : kind === "line" ? (
                     <LineChart data={data} width={width} color={color} fmt={fmt} />
                 ) : (
@@ -58,7 +59,7 @@ function Bars({ data, width, color, fmt, diverging }: ChartProps & { diverging: 
     const x = d3.scaleLinear().domain([lo, hi]).range([labelW, width - valueW]);
     return (
         <svg width={width} height={shown.length * rowH + 4} role="img" aria-label="Chart of the agent's table">
-            {lo < 0 && <line x1={x(0)} x2={x(0)} y1={0} y2={shown.length * rowH} className="stroke-border" />}
+            {lo < 0 && <line x1={x(0)} x2={x(0)} y1={0} y2={shown.length * rowH} stroke="var(--grid)" />}
             {shown.map((d, i) => {
                 const fill = diverging ? (d.value < 0 ? RED : GREEN) : color;
                 return (
@@ -67,7 +68,7 @@ function Bars({ data, width, color, fmt, diverging }: ChartProps & { diverging: 
                             {d.label.length > 24 ? d.label.slice(0, 23) + "…" : d.label}
                         </text>
                         <rect x={Math.min(x(0), x(d.value))} y={3} width={Math.max(1, Math.abs(x(d.value) - x(0)))} height={rowH - 6} rx={2} fill={fill} opacity={0.88} />
-                        <text x={width - valueW + 4} y={rowH / 2 + 3} className={cn("font-numeric text-100", d.value < 0 ? "fill-destructive" : "fill-muted-foreground")}>
+                        <text x={width - valueW + 4} y={rowH / 2 + 3} className={cn("tabular text-100", d.value < 0 ? "fill-destructive" : "fill-muted-foreground")}>
                             {fmt(d.value)}
                         </text>
                     </g>
@@ -89,8 +90,8 @@ function LineChart({ data, width, color, fmt }: ChartProps) {
         <svg width={width} height={h} role="img" aria-label="Chart of the agent's table over time">
             {y.ticks(3).map((t) => (
                 <g key={t}>
-                    <line x1={m.l} x2={width - m.r} y1={y(t)} y2={y(t)} className="stroke-border" strokeDasharray="2 4" />
-                    <text x={m.l - 4} y={y(t) + 3} textAnchor="end" className="fill-muted-foreground font-numeric text-100">{fmt(t)}</text>
+                    <line x1={m.l} x2={width - m.r} y1={y(t)} y2={y(t)} stroke="var(--grid)" />
+                    <text x={m.l - 4} y={y(t) + 3} textAnchor="end" className="fill-muted-foreground tabular text-100">{fmt(t)}</text>
                 </g>
             ))}
             <path d={line(data) ?? ""} fill="none" stroke={color} strokeWidth={2.5} />
