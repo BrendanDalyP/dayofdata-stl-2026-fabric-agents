@@ -44,13 +44,22 @@ Every extra table is another wrong join the agent can choose.
 
 ## 3a. Build one agent by hand (the Demo 1 path)
 
-1. Workspace → **New item** → **Data agent** → `SpaceParts Sales Analyst (live)`.
-2. **Add a data source** → `lh__spaceparts` → tick only the 8 Sales tables.
-3. Ask *"What were net sales by region this year?"* and open the **run steps**. It sums `net_invoice_value` across currencies and filters on 2026. Nobody told it.
-4. Paste `agents/sales-analyst/instructions.md` into **Agent instructions** and `agents/sales-analyst/datasource-instructions.md` into the data source's **instructions**.
-5. Add the example queries from `agents/sales-analyst/fewshots.json`.
-6. Ask again. Compare with `expected-answers.md` (S2).
-7. **Publish**, with the description from `agent.json`. That description becomes the MCP tool description.
+Start from a blank copy (or create one by hand: **New item** → **Data agent**, add `lh__spaceparts`, tick the 8 Sales tables):
+
+```powershell
+python create_agents.py --live-reset --workspace-id <ws> --lakehouse-id <lh> --lakehouse-name lh__spaceparts --sql-server <endpoint> --folder-id <folder id>
+```
+
+This creates or resets `SpaceParts Sales Analyst (live)`: the Sales tables, no instructions, no example queries, not published. Re-run it to start over.
+
+1. Ask *"What were net sales in euros by region in 2022?"* and open the **run steps**. It sums `net_invoice_value` across 15 currencies: Îlos V comes out at about €9.6bn instead of €2.40bn. (Ask "this year" instead and it filters on 2026 and finds nothing.) Nobody told it.
+2. Paste `agents/sales-analyst/instructions.md` into **Agent instructions**.
+3. Paste `agents/sales-analyst/datasource-instructions.md` into the data source's **instructions**.
+4. Add one example query: the first one in `agents/sales-analyst/fewshots.json` (net sales in euros by system).
+5. Ask *"What were net sales in euros by region this year?"*. Compare with `expected-answers.md` (S2): €9,026,084,019 in total, Îlos V €2,399,631,496.
+6. **Publish**, with the description from `agent.json`. That description becomes the MCP tool description.
+
+The agent instructions follow one structure for all three agents: **Objective · Data you can use · Key terminology · How to answer** (answer, key points, table, suggested chart, notes) **· When to ask for clarification · Out of scope**.
 
 ## 3b. Or script all three
 
@@ -69,7 +78,17 @@ python create_agents.py --workspace-id <ws> --lakehouse-id <lh> --lakehouse-name
 python make_ground_truth.py           # ground_truth_<agent>.csv + expected-answers.md
 ```
 
-Upload the CSVs to the lakehouse `Files/evaluation/` folder, open `evaluate_agent.ipynb` in Fabric and run it. Each question is asked three times; only questions that pass every repeat go on stage as chips.
+**One agent, no uploads: `evaluate_live_agent.ipynb`.** It scores one agent (by default the draft of `SpaceParts Sales Analyst (live)`) against the Sales questions, with the answers built in. Deploy it to your workspace with:
+
+```powershell
+python build_eval_notebook.py --deploy --workspace-id <ws> --lakehouse-id <lh> --folder-id <folder id>
+```
+
+Open `nb__evaluate_live_agent` in Fabric and run all. Change `AGENT` / `STAGE` in the first cell to score another agent, or the published version (`STAGE = "production"`).
+
+**All three agents: `evaluate_agent.ipynb`.** Upload the CSVs to the lakehouse `Files/evaluation/` folder, open it in Fabric and run it. Each question is asked three times; only questions that pass every repeat go on stage as chips.
+
+How the evaluation works: `evaluate_data_agent` asks every question; a second model, **the judge**, reads each answer next to the expected one and replies Yes, No or Unclear, following your **critic prompt**. The SDK fills `{query}` and `{expected_answer}` into the critic prompt and the judge reads the agent's answer from the conversation, so don't add an `{actual_answer}` placeholder. `get_evaluation_summary` gives the score; `get_evaluation_details` shows every answer with the SQL behind it.
 
 When an answer is wrong, open the run steps and fix **one layer**:
 
