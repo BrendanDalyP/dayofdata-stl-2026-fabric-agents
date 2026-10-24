@@ -106,15 +106,18 @@ export function PlanPage() {
                     ask={<Ask agent="planning" label="Own vs private" q="How are SpaceParts brands doing against private brands this year compared with last year?" />} />
             </div>
 
-            <Card className="col-span-7 max-[1100px]:col-span-12 max-[1100px]:h-96" title="2022 by month: forecast, budget and actuals"
-                subtitle="Click a month to ask Planning"
+            <Card className="col-span-7 max-[1100px]:col-span-12 max-[1100px]:h-96" title={k ? `The 2022 forecast is ${pct(gap(k.fc, k.bud), true)} against budget; actuals run ${pct(gap(k.actYtd, k.fcYtd), true)} against forecast Jan–Jul` : "2022 forecast, budget and actuals"}
+                subtitle="Monthly forecast, actual and budget, € · click a month"
+                source="SpaceParts lakehouse · app.forecast_vs_budget, app.territory_vs_forecast"
                 actions={<Ask agent="planning" label="Rest of 2022" q="How does the 2022 forecast compare with budget by month?" />}>
                 {k ? <ForecastMonthly data={k.monthly} onSelect={(m) => {
                     const label = m.month.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
                     ask(`How does the forecast compare with budget in ${label}, by product type?`, "planning", label);
                 }} /> : <Skeleton />}
             </Card>
-            <Card className="col-span-5 max-[1100px]:col-span-12 max-[1100px]:h-96" title="Forecast vs budget by product type" subtitle="Full year 2022 · click to ask"
+            <Card className="col-span-5 max-[1100px]:col-span-12 max-[1100px]:h-96" title={k?.worstType ? `${k.worstType.label} is furthest below budget, ${pct(k.worstType.gap, true)}` : "Forecast against budget by product type"}
+                subtitle="Full-year 2022 forecast against budget, % · click to ask"
+                source="SpaceParts lakehouse · app.forecast_vs_budget"
                 actions={k?.worstType && k.worstType.gap < 0 && (
                     <button type="button" disabled={flag === "busy" || flag === "done"} onClick={() => void flagGap()} title={flag?.startsWith("Failed") ? flag : "Runs createAction (a Rayfin function)"}
                         className={cn("inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-200 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -125,10 +128,14 @@ export function PlanPage() {
                 {k ? <GapBars rows={k.typeRows} label="2022 forecast vs budget by product type" onSelect={(t) => ask(`Why is the 2022 forecast for ${t} different from budget, by month and territory?`, "planning", t)} /> : <Skeleton />}
             </Card>
 
-            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-80" title="Territories furthest behind forecast" subtitle="Jan–Jul · euro gap shown, bar = %">
+            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-80" title={k?.terrRows[0] ? `${k.terrBehind} of ${k.terrCount} territories trail forecast; ${k.terrRows[0].label} by ${k.terrRows[0].value}` : "Territories furthest behind forecast"}
+                subtitle="Ten largest gaps, Jan–Jul 2022 · bar = %, label = €"
+                source="SpaceParts lakehouse · app.territory_vs_forecast">
                 {k ? <GapBars rows={k.terrRows} label="Territories furthest behind forecast" onSelect={(t) => ask(`Why is the territory ${t} behind its forecast this year, by month and product type?`, "planning", t)} /> : <Skeleton />}
             </Card>
-            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-80" title="Brands vs budget" subtitle="Jan–Jul · ·P = private brand">
+            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-80" title={k ? (k.brandsBehind ? `${k.brandsBehind} of ${k.brandRows.length} brands are behind budget` : `All ${k.brandRows.length} brands are at or above budget`) : "Brands against budget"}
+                subtitle="Jan–Jul 2022 against budget, % · ·P = private brand"
+                source="SpaceParts lakehouse · app.brand_vs_budget">
                 {k ? <GapBars rows={k.brandRows} label="Brands against budget" onSelect={(b) => ask(`How is the brand ${b} doing against budget this year, by month?`, "planning", b)} /> : <Skeleton />}
             </Card>
             <AgentBrief className="col-span-4 max-[1100px]:col-span-12" agent="planning"

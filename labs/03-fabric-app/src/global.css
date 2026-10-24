@@ -216,8 +216,8 @@ body,
 
 /* Flat cards: the .glass class is kept as a plain hairline card so markup doesn't change. */
 .glass { background: var(--color-card); }
-:root { --ink-muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --gap-neutral: #f0efec; }
-.dark { --grid: #2c2c2a; --axis: #383835; --gap-neutral: #383835; }
+:root { --ink-muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7; --gap-neutral: #f0efec; --plan: #1f2328; --context: #c9cbcf; }
+.dark { --grid: #2c2c2a; --axis: #383835; --gap-neutral: #383835; --plan: #f2f1ec; --context: #5b5d61; }
 .tabular { font-variant-numeric: tabular-nums; }
 
 /* Midnight theme: deep navy surfaces (selected palette, validated against #111c2e). */
@@ -236,6 +236,8 @@ body,
   --grid: #1f2e47;
   --axis: #2c3f5e;
   --gap-neutral: #2a3a55;
+  --plan: #eef3fb;
+  --context: #4a5a74;
 }
 /* Brand header band stays navy in every theme. */
 .brand-band { background: #0e1a2e; color: #ffffff; border-color: #0e1a2e; }

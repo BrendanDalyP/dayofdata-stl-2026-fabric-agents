@@ -10,7 +10,8 @@ import * as d3 from "d3";
 export const C = {
     series: "#2a78d6",
     seriesSoft: "#86b6ef",
-    plan: "#52514e",        // budget / plan reference line (ink)
+    plan: "var(--plan)",    // budget / plan marker (ink; theme-aware)
+    context: "var(--context)", // earlier periods and context series (grey)
     below: "#d03b3b",       // diverging warm pole
     above: "#2a78d6",       // diverging cool pole
     neutral: "#f0efec",     // diverging midpoint

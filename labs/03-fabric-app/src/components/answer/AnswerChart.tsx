@@ -67,7 +67,7 @@ function Bars({ data, width, color, fmt, diverging }: ChartProps & { diverging: 
                         <text x={labelW - 6} y={rowH / 2 + 3} textAnchor="end" className="fill-foreground text-100">
                             {d.label.length > 24 ? d.label.slice(0, 23) + "…" : d.label}
                         </text>
-                        <rect x={Math.min(x(0), x(d.value))} y={3} width={Math.max(1, Math.abs(x(d.value) - x(0)))} height={rowH - 6} rx={2} fill={fill} opacity={0.88} />
+                        <rect x={Math.min(x(0), x(d.value))} y={3} width={Math.max(1, Math.abs(x(d.value) - x(0)))} height={rowH - 6} fill={fill} />
                         <text x={width - valueW + 4} y={rowH / 2 + 3} className={cn("tabular text-100", d.value < 0 ? "fill-destructive" : "fill-muted-foreground")}>
                             {fmt(d.value)}
                         </text>
@@ -84,7 +84,7 @@ function LineChart({ data, width, color, fmt }: ChartProps) {
     const ext = d3.extent(data, (d) => d.value) as [number, number];
     const pad = (ext[1] - ext[0]) * 0.15 || Math.abs(ext[1]) * 0.1 || 1;
     const y = d3.scaleLinear().domain([ext[0] - pad, ext[1] + pad]).range([h - m.b, m.t]);
-    const line = d3.line<{ label: string; value: number }>().x((d) => x(d.label)!).y((d) => y(d.value)).curve(d3.curveMonotoneX);
+    const line = d3.line<{ label: string; value: number }>().x((d) => x(d.label)!).y((d) => y(d.value));
     const step = Math.ceil(data.length / 6);
     return (
         <svg width={width} height={h} role="img" aria-label="Chart of the agent's table over time">
@@ -94,7 +94,7 @@ function LineChart({ data, width, color, fmt }: ChartProps) {
                     <text x={m.l - 4} y={y(t) + 3} textAnchor="end" className="fill-muted-foreground tabular text-100">{fmt(t)}</text>
                 </g>
             ))}
-            <path d={line(data) ?? ""} fill="none" stroke={color} strokeWidth={2.5} />
+            <path d={line(data) ?? ""} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" />
             {data.map((d) => <circle key={d.label} cx={x(d.label)} cy={y(d.value)} r={3} fill={color}><title>{`${d.label}: ${fmt(d.value)}`}</title></circle>)}
             {data.filter((_, i) => i % step === 0).map((d) => (
                 <text key={d.label} x={x(d.label)} y={h - 4} textAnchor="middle" className="fill-muted-foreground font-monospace text-100">{d.label.slice(0, 8)}</text>

@@ -6,7 +6,7 @@ import { memberByKey } from "@/agent/team";
 import { AgentBrief } from "@/components/AgentBrief";
 import { PlanCard } from "@/components/AgentAnswer";
 import { AskLink, Card, Skeleton } from "@/components/Card";
-import { AccountTrend } from "@/components/viz/AccountTrend";
+import { BudgetColumns } from "@/components/viz/BudgetColumns";
 import { VarianceHeatmap } from "@/components/viz/VarianceHeatmap";
 import { GapStrip } from "@/components/viz/GapStrip";
 import { C, STATUS, StatusBadge, statusOf, fmtEurShort } from "@/components/viz/common";
@@ -94,6 +94,7 @@ function AccountDetail({ a }: { a: Subject }) {
     const needed = Math.max(0, a.budgetFy - a.actualYtd) / MONTHS_REMAINING;
     const budgetMonthly = (a.budgetFy - a.budgetYtd) / MONTHS_REMAINING;
     const uplift = budgetMonthly > 0 ? (needed / budgetMonthly - 1) * 100 : 0;
+    const missed = a.monthly.filter((m) => m.month.getUTCFullYear() === 2022 && m.month.getUTCMonth() < 7 && m.net < m.budget).length;
     const [saved, setSaved] = useState<Record<string, string>>({});
     const [planResult, setPlanResult] = useState<RecoveryPlanResult>();
     const { refreshActions, ask } = useAsk();
@@ -141,12 +142,13 @@ function AccountDetail({ a }: { a: Subject }) {
 
             {/* trend + recovery maths */}
             <div className="grid min-h-0 grid-cols-12 gap-3">
-                <Card className="col-span-8" title="Monthly net sales vs budget" subtitle="2021 – Aug 2022 · red bars missed budget · click a month to ask"
+                <Card className="col-span-8" title={`${a.name} was below budget in ${missed} of 7 months of 2022`} subtitle="Monthly net sales and budget, € · click a month to ask"
+                        source="SpaceParts lakehouse · app.sales_vs_budget · EUR at monthly rates"
                         actions={<>
                             <AskLink agent={sales.tag} color={sales.color} label="Which months missed?" onClick={() => ask(`Which months did the key account ${a.name} miss budget this year, and by how much?`, "sales", a.name)} />
                             <AskLink agent={ops.tag} color={ops.color} label="Backlog" onClick={() => ask(`What is the open order backlog for the key account ${a.name}, in euros?`, "operations", a.name)} />
                         </>}>
-                    <AccountTrend data={a.monthly} onSelect={(m) => ask(`How did the key account ${a.name} do against budget in ${m.month.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}?`, "sales", `${a.name} · ${m.month.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })}`)} />
+                    <BudgetColumns label={`${a.name}: monthly net sales against budget`} data={a.monthly} onSelect={(m) => ask(`How did the key account ${a.name} do against budget in ${m.month.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}?`, "sales", `${a.name} · ${m.month.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" })}`)} />
                 </Card>
                 <Card className="col-span-4" title="To land the full-year budget" subtitle={`Aug–Dec · ${MONTHS_REMAINING} months left`} bodyClassName="flex flex-col gap-3">
                     {planResult ? <div className="min-h-0 flex-1 overflow-y-auto"><PlanCard plan={planResult} onAsk={(q, to, ctx) => ask(q, to, ctx)} /></div> : (

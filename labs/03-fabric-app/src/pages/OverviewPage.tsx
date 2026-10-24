@@ -6,7 +6,7 @@ import { memberByKey } from "@/agent/team";
 import { AgentBrief } from "@/components/AgentBrief";
 import { Card, Skeleton } from "@/components/Card";
 import { Ask, Kpi } from "@/components/Kpi";
-import { PulseChart } from "@/components/viz/PulseChart";
+import { BudgetColumns } from "@/components/viz/BudgetColumns";
 import { RegionGaps } from "@/components/viz/RegionGaps";
 import { Sparkline } from "@/components/viz/Sparkline";
 import { C, STATUS, statusOf, fmtEurShort } from "@/components/viz/common";
@@ -27,7 +27,10 @@ export function OverviewPage() {
         const otd = data.delivery.filter((d) => d.month.getUTCFullYear() === 2022);
         const fc = data.forecast.reduce((s, r) => s + r.forecast, 0), fb = data.forecast.reduce((s, r) => s + r.budget, 0);
         const sorted = [...data.accounts].sort((a, b) => gapPct(a) - gapPct(b));
-        return { y22, net22, gap, byStatus, behind: byStatus.warning + byStatus.critical, otd, fc, fb, worst: sorted.slice(0, 4), best: sorted.slice(-4).reverse() };
+        const ahead = ytd.filter((m) => m.net >= m.budget).length;
+        const regions = [...data.regions].sort((a, b) => gapPct(a) - gapPct(b));
+        return { y22, net22, gap, ahead, byStatus, behind: byStatus.warning + byStatus.critical, otd, fc, fb, worst: sorted.slice(0, 4), best: sorted.slice(-4).reverse(),
+            worstAcct: sorted[0], topRegion: regions.at(-1), lowRegion: regions[0] };
     }, [data]);
 
     if (dataError) return <p role="alert" className="rounded-lg border border-destructive/40 bg-card p-4 text-300 text-destructive">Couldn't read the lakehouse through the connector: {dataError}</p>;
@@ -39,8 +42,8 @@ export function OverviewPage() {
         <div className="grid h-full min-h-0 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:h-auto max-[1100px]:grid-rows-none">
             {/* KPIs — each with the agent who can explain it */}
             <div className="col-span-12 grid grid-cols-5 gap-3 max-[1100px]:grid-cols-2">
-                <Kpi label="Net sales, 2022 to date" value={k && eur(k.net22, true)} note={`to ${DATA_END_LABEL} · dotted line = budget`}
-                    spark={k && <Sparkline values={k.y22.map((m) => m.net)} band={k.y22.map((m) => m.budget)} color={C.series} />}
+                <Kpi label="Net sales, 2022 to date" value={k && eur(k.net22, true)} note={`monthly, to ${DATA_END_LABEL}`}
+                    spark={k && <Sparkline kind="columns" partialLast values={k.y22.map((m) => m.net)} color={C.series} />}
                     ask={<Ask agent="sales" label="By region" q="What were net sales in euros by region this year?" />} />
                 <Kpi label="Against budget, Jan–Jul" value={k && pct(k.gap, true)} tone={k && k.gap < 0 ? "bad" : "good"} note="complete months"
                     ask={<Ask agent="sales" label="What drives it?" q="Which key accounts and regions drive net sales against budget this year?" />} />
@@ -62,13 +65,14 @@ export function OverviewPage() {
             </div>
 
             {/* Sales pulse + brief */}
-            <Card className="col-span-8 max-[1100px]:col-span-12 max-[1100px]:h-96" title="Net sales against budget"
-                subtitle="Monthly, 2021–2022 · click a month to ask about it"
+            <Card className="col-span-8 max-[1100px]:col-span-12 max-[1100px]:h-96" title={k ? `Net sales are ${pct(k.gap, true)} against budget in 2022, ahead in ${k.ahead} of 7 months` : "Net sales against budget"}
+                subtitle="Monthly net sales and budget, € · click a month to ask"
+                source={"SpaceParts lakehouse · app.sales_vs_budget · EUR at monthly rates"}
                 actions={<>
                     <Ask agent="sales" label="Growth vs last year" q="How did net sales grow against last year by product type?" />
                     <Ask agent="planning" label="Rest of 2022" q="How does the 2022 forecast compare with budget by month?" />
                 </>}>
-                {data ? <PulseChart data={data.months} onSelect={(m) => {
+                {data ? <BudgetColumns data={data.months} onSelect={(m) => {
                     const label = m.month.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
                     ask(`What drove net sales against budget in ${label}?`, "sales", m.month.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }));
                 }} /> : <Skeleton />}
@@ -78,7 +82,9 @@ export function OverviewPage() {
                 question="Which key accounts are furthest behind budget this year, and what is driving the gap?" />
 
             {/* Movers · regions · actions */}
-            <Card className="col-span-4 max-[1100px]:col-span-12" title="Key account movers" subtitle="Jan–Jul vs budget · click to open"
+            <Card className="col-span-4 max-[1100px]:col-span-12" title={k?.worstAcct ? `${k.behind} of ${data!.accounts.length} key accounts trail budget; ${k.worstAcct.name} by ${eur(k.worstAcct.actualYtd - k.worstAcct.budgetYtd, true)}` : "Key account movers"}
+                subtitle="Jan–Jul 2022 against budget, % · click to open"
+                source={"SpaceParts lakehouse · app.sales_vs_budget · EUR at monthly rates"}
                 actions={<button type="button" onClick={() => navigate("accounts")} className="inline-flex items-center gap-1 text-200 font-semibold text-brand-foreground hover:underline">All 13 <ArrowRight className="icon-size-100" /></button>}>
                 {k ? (
                     <div className="grid h-full grid-cols-2 gap-4">
@@ -87,8 +93,9 @@ export function OverviewPage() {
                     </div>
                 ) : <Skeleton />}
             </Card>
-            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-96" title="Regions vs budget"
-                subtitle="Jan–Jul gap to budget · click a region"
+            <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-96" title={k?.topRegion && k.lowRegion ? `${k.topRegion.name.replace(" Region", "")} leads at ${pct(gapPct(k.topRegion), true)}; ${k.lowRegion.name.replace(" Region", "")} trails at ${pct(gapPct(k.lowRegion), true)}` : "Regions against budget"}
+                subtitle="Jan–Jul 2022 against budget, % · click a region"
+                source={"SpaceParts lakehouse · app.sales_vs_budget · EUR at monthly rates"}
                 actions={<Ask agent="sales" label="Why so uneven?" q="Which regions are furthest above and below budget this year, and which key accounts drive that?" />}>
                 {data ? <RegionGaps regions={data.regions} onSelect={(r: Subject) => ask(`How is ${r.name} doing against budget this year (${pct(gapPct(r), true)} Jan–Jul), and which key accounts drive it?`, "sales", r.name)} /> : <Skeleton />}
             </Card>

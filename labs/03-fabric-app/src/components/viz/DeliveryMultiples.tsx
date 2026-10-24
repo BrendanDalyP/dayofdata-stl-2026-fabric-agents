@@ -21,7 +21,7 @@ export function DeliveryMultiples({ data, color, onSelect }: { data: DeliveryMon
     const yo = d3.scaleLinear().domain([Math.floor((ext[0] - 3) / 5) * 5, Math.ceil((ext[1] + 3) / 5) * 5]).range([top1, top0]).nice();
     const bot0 = top1 + gap + titleH, bot1 = bot0 + panelH;
     const yp = d3.scaleLinear().domain([0, (d3.max(data, (d) => d.penalties) ?? 1) * 1.1]).range([bot1, bot0]).nice();
-    const line = d3.line<DeliveryMonth>().x(cx).y((d) => yo(d.onTimePct)).curve(d3.curveMonotoneX);
+    const line = d3.line<DeliveryMonth>().x(cx).y((d) => yo(d.onTimePct));
     const last = data.at(-1);
 
     return (
@@ -34,8 +34,9 @@ export function DeliveryMultiples({ data, color, onSelect }: { data: DeliveryMon
                         <text x={m.l - 6} y={yo(t)} dy="0.35em" textAnchor="end" className="tabular fill-muted-foreground text-100">{t}%</text>
                     </g>
                 ))}
-                <path d={line(data) ?? ""} fill="none" stroke={color} strokeWidth={2} />
-                {data.map((d) => <circle key={+d.month} cx={cx(d)} cy={yo(d.onTimePct)} r={4} fill={color} stroke="var(--color-card)" strokeWidth={2} />)}
+                <path d={line(data) ?? ""} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" />
+                {data.map((d) => <circle key={+d.month} cx={cx(d)} cy={yo(d.onTimePct)} r={3} fill={color} />)}
+                {data[0] && <text x={cx(data[0])} y={yo(data[0].onTimePct) - 9} textAnchor="middle" className="tabular fill-muted-foreground text-100">{data[0].onTimePct.toFixed(1)}%</text>}
                 {last && <text x={cx(last)} y={yo(last.onTimePct) - 9} textAnchor="middle" className="tabular fill-foreground text-200 font-semibold">{last.onTimePct.toFixed(1)}%</text>}
 
                 <text x={m.l} y={bot0 - 5} className="fill-muted-foreground text-100 font-semibold">Late-delivery penalties, €</text>
@@ -46,7 +47,7 @@ export function DeliveryMultiples({ data, color, onSelect }: { data: DeliveryMon
                     </g>
                 ))}
                 {data.map((d) => (
-                    <rect key={+d.month} x={x(d.month)} y={yp(d.penalties)} width={x.bandwidth()} height={Math.max(0, yp(0) - yp(d.penalties))} rx={3} fill={C.plan} />
+                    <rect key={+d.month} x={x(d.month)} y={yp(d.penalties)} width={x.bandwidth()} height={Math.max(0, yp(0) - yp(d.penalties))} fill={C.context} />
                 ))}
 
                 {data.map((d) => (

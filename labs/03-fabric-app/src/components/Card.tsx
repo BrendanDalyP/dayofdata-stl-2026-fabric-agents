@@ -1,22 +1,27 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Flat hairline card whose body fills the remaining height (for no-scroll grid layouts). */
-export function Card({ title, subtitle, actions, children, className, bodyClassName }: {
-    title?: ReactNode; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; bodyClassName?: string;
+/**
+ * Flat hairline card whose body fills the remaining height (for no-scroll grid layouts).
+ * `title` states the takeaway (an action title); `subtitle` says what is plotted and its unit;
+ * `source` names where the numbers come from.
+ */
+export function Card({ title, subtitle, actions, children, className, bodyClassName, source }: {
+    title?: ReactNode; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; bodyClassName?: string; source?: ReactNode;
 }) {
     return (
         <section className={cn("flex min-h-0 min-w-0 flex-col rounded-lg border border-border bg-card p-4", className)}>
             {(title || actions) && (
                 <header className="mb-2 flex shrink-0 items-start justify-between gap-3">
                     <div className="min-w-0">
-                        {title && <h2 className="font-heading text-400 font-semibold text-emphasis-foreground">{title}</h2>}
+                        {title && <h2 className="font-heading text-400 font-semibold text-emphasis-foreground [text-wrap:balance]">{title}</h2>}
                         {subtitle && <p className="text-200 text-muted-foreground">{subtitle}</p>}
                     </div>
                     {actions && <div className="flex shrink-0 flex-wrap gap-1.5">{actions}</div>}
                 </header>
             )}
             <div className={cn("min-h-0 flex-1 overflow-hidden", bodyClassName)}>{children}</div>
+            {source && <p className="mt-1.5 shrink-0 truncate text-100 text-muted-foreground">Source: {source}</p>}
         </section>
     );
 }

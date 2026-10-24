@@ -75,13 +75,15 @@ export function OperationsPage() {
                     ask={<Ask agent="operations" label="By product" q="What share of order value was cancelled this year, by product type?" />} />
             </div>
 
-            <Card className="col-span-7 max-[1100px]:col-span-12 max-[1100px]:h-96" title="Open order book by region"
-                subtitle="Sorted by overdue value · click a region to ask Operations"
+            <Card className="col-span-7 max-[1100px]:col-span-12 max-[1100px]:h-96" title={k ? `${eur(k.overdue, true)} of orders are overdue, ${pct((100 * k.overdue) / k.total)} of the open book` : "Open order book by region"}
+                subtitle="Open order book by region and status, € · sorted by overdue value · click a region"
+                source="SpaceParts lakehouse · app.order_backlog · EUR at monthly rates"
                 actions={<Ask agent="operations" label="Where is it stuck?" q="Which regions have the most overdue and late order value, in euros?" />}>
                 {d ? <BacklogByRegion rows={d.backlog} onSelect={(r) => ask(`What is the open and overdue order backlog in ${r}, by order status and key account, in euros?`, "operations", r)} /> : <Skeleton />}
             </Card>
-            <Card className="col-span-5 max-[1100px]:col-span-12 max-[1100px]:h-96" title="Delivery performance, 2022"
-                subtitle="Same months, two measures · click a month to ask"
+            <Card className="col-span-5 max-[1100px]:col-span-12 max-[1100px]:h-96" title={first && last ? `On-time delivery ${last.onTimePct < first.onTimePct ? "fell" : "rose"} from ${pct(first.onTimePct)} in January to ${pct(last.onTimePct)} in August` : "Delivery performance, 2022"}
+                subtitle="On-time share of invoice lines, % · late-delivery penalties, € · click a month"
+                source="SpaceParts lakehouse · app.delivery_by_region"
                 actions={<Ask agent="operations" label="Why the drop?" q="Why did the on-time delivery rate fall this year, and which regions drive it?" />}>
                 {k ? <DeliveryMultiples data={k.months} color={ops.color} onSelect={(m) => {
                     const label = m.month.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
@@ -89,7 +91,9 @@ export function OperationsPage() {
                 }} /> : <Skeleton />}
             </Card>
 
-            <Card className="col-span-4 max-[1100px]:col-span-12" title="Overdue orders by key account" subtitle="Escalate straight to the action board" bodyClassName="overflow-y-auto">
+            <Card className="col-span-4 max-[1100px]:col-span-12" title={k?.overdueAccounts[0] ? `${k.overdueAccounts[0][0]} holds the most overdue orders, ${eur(k.overdueAccounts[0][1], true)}` : "Overdue orders by key account"}
+                subtitle="Overdue order value, € · Escalate adds it to the action board"
+                source="SpaceParts lakehouse · app.order_backlog" bodyClassName="overflow-y-auto">
                 {k ? (
                     <ul className="space-y-1.5">
                         {k.overdueAccounts.map(([account, value]) => {
@@ -119,7 +123,9 @@ export function OperationsPage() {
                     </ul>
                 ) : <Skeleton />}
             </Card>
-            <Card className="col-span-4 max-[1100px]:col-span-12" title="Cancelled order value, 2022" subtitle="Share of each product type's order value · click to ask"
+            <Card className="col-span-4 max-[1100px]:col-span-12" title={k?.cancels[0] ? `${k.cancels[0].productType} has the highest cancellation rate, ${pct(k.cancels[0].pct)}` : "Cancelled order value, 2022"}
+                subtitle="Cancelled share of 2022 order value, % · click to ask"
+                source="SpaceParts lakehouse · app.cancellations_by_type"
                 bodyClassName="overflow-y-auto">
                 {k ? (
                     <ul className="space-y-1">
