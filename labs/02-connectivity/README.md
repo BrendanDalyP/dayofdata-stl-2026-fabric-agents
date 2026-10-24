@@ -1,6 +1,6 @@
 # Lab 02 — Connecting to the agent from outside Fabric
 
-**Goal:** call a published data agent from a script over MCP, first as you, then as an app registration (service principal).
+**Goal:** call each published data agent from a script over its **MCP endpoint**. That endpoint is the whole integration surface: anything that speaks MCP — a script, VS Code, your app's backend — can use the agent team.
 
 **Time:** 20 minutes.
 
@@ -26,7 +26,13 @@ python test_agent_mcp.py --agent planning "How does the 2022 forecast compare wi
 
 Agent URLs come from `../01-data-agent/published-agents.json`. Expect 30–60 seconds per answer.
 
-## 3. Now as an app: the app registration
+## 3. What the script does
+
+`test_agent_mcp.py` is the whole protocol: get a token for `https://api.fabric.microsoft.com/.default`, open a streamable-HTTP MCP session, `initialize`, list the tools (there is one — the agent), call it with the question, print the text. The agent's answer is markdown text and tables; the endpoint keeps no conversation state, so each question stands alone. The Rayfin function in Lab 03 (`data-agent.ts`) is the same four messages in TypeScript.
+
+## 4. Optional: call as an app registration (service principal)
+
+You only need this if the app should run queries as its own narrowly-scoped identity instead of a user or the Rayfin app identity.
 
 ### Which identity calls the agent?
 
@@ -94,7 +100,7 @@ A list containing your agent means the app can see it.
 | `403` / `PrincipalTypeNotSupported` | Tenant setting off, app not in the allowed group, or no workspace role |
 | `404` | Wrong workspace ID, or the agent is not published |
 
-## 4. Hand the secrets to the app (never the browser)
+### 4.5 Hand the secrets to the app (never the browser)
 
 These go into the **Rayfin function's secret store**, not into frontend code or the repo:
 
@@ -109,4 +115,4 @@ npx rayfin secret set AGENT_CLIENT_SECRET
 
 ## ✅ Checkpoint
 
-`test_agent_mcp.py` answers as `service principal …`.
+`test_agent_mcp.py` answers all three agents as you (and, if you did section 4, as `service principal …`).

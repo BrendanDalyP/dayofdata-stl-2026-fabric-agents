@@ -25,3 +25,8 @@ Forecast, budget and invoices have different grains. Always aggregate each one i
 
 ## Dates
 The data ends on 2022-08-21. Forecast exists only for 2022. Plan comparisons to date use `>= '2022-01-01' AND < '2022-08-01'` on both sides. Never use GETDATE().
+
+## Key accounts (match these names to `customers.key_account_name`)
+Government Contract, Andromeda Shipyards, Macrohard Systems, Miller Space, Pioneering Systems, Supernova Spaceparts, Sigil Interstellar, Wel Walla Ship Repair, Black Flag Spaceships, Aminu Kano Navy, Antarctic Corporation, Elysium Aerospace.
+When a question names one of these, it is a **key account**: filter `customers.account_type = 'Key Account' AND customers.key_account_name = '<name>'`. Never search `customer_soldto_name` or `account_name` for them, and never ask the user to spell it differently.
+A single month ("in April 2022") means that calendar month: `billing_date >= '2022-04-01' AND billing_date < '2022-05-01'`, compared with `budget.[month] = '2022-04-01'`.

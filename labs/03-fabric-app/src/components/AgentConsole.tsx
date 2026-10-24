@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
-    ArrowUp, Check, CircleCheck, ClipboardList, Eye, Flag, LifeBuoy, RotateCcw, ShieldCheck, Siren, Target, TrendingUp, Truck, Users, Zap,
+    ArrowUp, Check, CircleCheck, ClipboardList, Eye, Flag, LifeBuoy, RotateCcw, Siren, Target, TrendingUp, Truck, Users, Zap,
 } from "lucide-react";
 
 import { askAgent, type AgentAnswer } from "@/agent";
-import { TEAM, memberByKey, type AgentKey } from "@/agent/team";
-import { Markdown } from "@/components/Markdown";
-import { RequestTrace } from "@/components/RequestTrace";
+import { TEAM, colorOf, memberByKey, type AgentKey } from "@/agent/team";
+import { RichAnswer } from "@/components/answer/RichAnswer";
 import { buildRecoveryPlan, createAction, listActions, setActionStatus, type ActionRow } from "@/services/actions";
 import { eur, pct, type CommandData, type Subject } from "@/queries/overview";
 import type { RecoveryPlanResult } from "../../rayfin/functions/src/types";
@@ -123,11 +122,13 @@ export function AgentConsole({ data, pending, focus }: Props) {
                     {([...TEAM.map((m) => m.key), "team"] as Target[]).map((k) => {
                         const Icon = ICON[k];
                         const active = target === k;
+                        const col = colorOf(k);
                         return (
                             <button key={k} type="button" role="radio" aria-checked={active} onClick={() => setTarget(k)}
+                                style={active ? { borderColor: col, background: `${col}22` } : { borderTop: `3px solid ${col}` }}
                                 className={cn("flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5 text-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                                    active ? "border-brand bg-brand/15 text-emphasis-foreground" : "border-border text-muted-foreground hover:border-brand/50")}>
-                                <Icon className="icon-size-200" aria-hidden />
+                                    active ? "text-emphasis-foreground" : "border-border text-muted-foreground hover:bg-muted")}>
+                                <Icon className="icon-size-200" aria-hidden style={{ color: col }} />
                                 <span className="font-semibold">{k === "team" ? "Whole team" : memberByKey(k).name}</span>
                             </button>
                         );
@@ -209,6 +210,8 @@ function AnswerCard({ turn, reply, data, focus, onRun, onAsk }: {
 }) {
     const member = memberByKey(reply.agent);
     const Icon = ICON[reply.agent];
+    const color = member.color;
+    const entities = data ? [...data.accounts.map((a) => a.name), ...data.regions.map((r) => r.name), ...data.forecast.map((f) => f.productType)] : [];
     const text = reply.result?.answer ?? "";
     let subjects = findSubjects(text + " " + turn.question, data);
     if (!subjects.length && focus && data) {
@@ -239,25 +242,24 @@ function AnswerCard({ turn, reply, data, focus, onRun, onAsk }: {
     }
 
     return (
-        <div className="rounded-xl rounded-tl-sm border border-border bg-background/60 p-3">
+        <div className="rounded-xl rounded-tl-sm border border-border bg-background/60 p-3" style={{ borderLeft: `4px solid ${color}` }}>
             <div className="mb-1.5 flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1.5 font-heading text-200 font-semibold text-emphasis-foreground">
-                    <Icon className="icon-size-100 text-brand-foreground" aria-hidden /> {member.name}
+                <span className="flex items-center gap-1.5 rounded-full px-2 py-0.5 font-heading text-200 font-semibold" style={{ background: `${color}1f`, color }}>
+                    <Icon className="icon-size-100" aria-hidden /> {member.name}
                 </span>
                 {reply.result && (
-                    <span className="flex items-center gap-1 rounded-full bg-signal/15 px-2 py-0.5 font-monospace text-100 text-foreground">
-                        <ShieldCheck className="icon-size-100" aria-hidden /> {reply.result.identity}
+                    <span className="font-monospace text-100 text-muted-foreground" title={`via MCP · ${reply.result.identity}`}>
+                        {(reply.result.totalMs / 1000).toFixed(1)}s
                     </span>
                 )}
             </div>
             {reply.error ? (
                 <p role="alert" className="text-200 text-destructive">{reply.error}</p>
             ) : reply.result ? (
-                <div className="max-h-96 overflow-auto text-200"><Markdown>{reply.result.answer}</Markdown></div>
+                <div className="max-h-[28rem] overflow-auto"><RichAnswer text={reply.result.answer} color={color} highlights={{ entities }} /></div>
             ) : (
                 <div className="space-y-1.5"><div className="h-2.5 w-3/4 rounded bg-muted trace-pulse" /><div className="h-2.5 w-1/2 rounded bg-muted trace-pulse" /></div>
             )}
-            <RequestTrace agentLabel={member.name} totalMs={reply.result?.totalMs ?? (reply.error ? 0 : null)} serverMs={reply.result?.serverMs ?? 0} protocol={reply.result?.protocol} />
 
             {reply.result && buttons.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -266,11 +268,12 @@ function AnswerCard({ turn, reply, data, focus, onRun, onAsk }: {
                         const BIcon = st === "done" ? Check : b.icon;
                         return (
                             <button key={b.key} type="button" disabled={st === "busy" || st === "done"} onClick={() => onRun(turn, reply, b.key, b.run)}
+                                style={b.tone === "primary" && !st ? { background: color, borderColor: color } : undefined}
                                 title={typeof st === "string" && st.startsWith("Failed") ? st : "Runs a Rayfin function"}
                                 className={cn("flex items-center gap-1 rounded-md border px-2 py-1 text-100 font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                     st === "done" ? "border-success/50 text-success" :
                                         st?.startsWith("Failed") ? "border-destructive/50 text-destructive" :
-                                            b.tone === "primary" ? "border-brand bg-brand text-on-brand hover:opacity-90" : "border-border text-foreground hover:bg-muted",
+                                            b.tone === "primary" ? "text-on-brand hover:opacity-90" : "border-border text-foreground hover:bg-muted",
                                     st === "busy" && "trace-pulse")}>
                                 <BIcon className="icon-size-100" aria-hidden />{b.label}
                             </button>

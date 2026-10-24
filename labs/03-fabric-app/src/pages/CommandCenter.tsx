@@ -75,8 +75,8 @@ export function CommandCenter() {
                     {data && (
                         <VarianceHeatmap cells={data.accountCells} subjects={data.accounts} focus={focus}
                             onSelect={(s, m) => ask(
-                                m ? `How did ${s.name} do against budget in ${m.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}?`
-                                  : `How is ${s.name} doing against budget this year, and what is driving the gap?`,
+                                m ? `How did the key account ${s.name} do against budget in ${m.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}?`
+                                  : `How is the key account ${s.name} doing against budget this year, and which months and product types drive the gap?`,
                                 "sales", s.name)} />
                     )}
                 </Panel>
