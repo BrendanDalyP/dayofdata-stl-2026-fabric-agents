@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chart patterns for agent answers</title>
+<style>
+  :root {
+    --page: #f9f9f7; --card: #fcfcfb; --line: rgba(11,11,11,0.10); --grid: #e1e0d9; --axis: #c3c2b7;
+    --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+    --actual: #2a78d6; --below: #d03b3b; --above: #2a78d6; --plan: #0b0b0b; --context: #c3c2b7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #151514; --card: #1c1c1b; --line: rgba(255,255,255,0.10); --grid: #2e2d2a; --axis: #4a4943;
+      --ink: #f2f1ec; --ink2: #bdbbb3; --muted: #8d8b84;
+      --actual: #5b9ae6; --below: #e5615f; --above: #5b9ae6; --plan: #f2f1ec; --context: #55544e;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--page); color: var(--ink); font: 15px/1.5 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; padding: 32px 16px 64px; }
+  main { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  header h1 { font-size: 28px; line-height: 1.2; }
+  header p { color: var(--ink2); max-width: 70ch; margin-top: 8px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 20px 24px; }
+  .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h2 { font-size: 18px; line-height: 1.3; margin-top: 4px; }
+  .sub { color: var(--ink2); font-size: 13px; }
+  .why { color: var(--ink2); font-size: 13px; border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+  .why b { color: var(--ink); }
+  svg { display: block; width: 100%; height: auto; margin-top: 12px; overflow: visible; }
+  svg text { fill: var(--ink2); font-size: 12px; font-variant-numeric: tabular-nums; }
+  svg .lbl { fill: var(--ink); }
+  svg .strong { fill: var(--ink); font-weight: 600; }
+  .multiples { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .multiples svg { margin-top: 4px; }
+  .multiples h3 { font-size: 13px; font-weight: 600; }
+  ul.donts { columns: 2 260px; color: var(--ink2); font-size: 14px; padding-left: 18px; margin-top: 8px; }
+  ul.donts li { margin-bottom: 6px; break-inside: avoid; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Examples · charts</p>
+    <h1>Chart patterns for agent answers</h1>
+    <p>Five forms that cover most questions a data agent answers, drawn from the real SpaceParts data (2022, euros, checked against <code>labs/01-data-agent/verify_answers.sql</code>). Each title states the finding; colour carries meaning, not decoration. Plain SVG and JavaScript, no libraries: copy the function you need.</p>
+  </header>
+
+  <section>
+    <p class="eyebrow">Change over time vs plan · columns with a budget marker</p>
+    <h2 id="t-monthly"></h2>
+    <p class="sub">Net sales by month, 2022, EUR. The line on each column is the budget; the label under it is the gap.</p>
+    <svg id="monthly" viewBox="0 0 980 300" role="img" aria-labelledby="t-monthly"></svg>
+    <p class="why"><b>Use when</b> the question is "how are we tracking against budget by month". <b>Why:</b> the budget is a target, so it's a marker, not a second bar or a second axis; the gap is written out so nobody has to estimate it. August is partial (data ends 21 Aug), so it's drawn lighter.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Gaps against budget · diverging bars, sorted</p>
+    <h2 id="t-accounts"></h2>
+    <p class="sub">Key accounts, actual vs budget, Jan–Jul 2022, %.</p>
+    <svg id="accounts" viewBox="0 0 980 420" role="img" aria-labelledby="t-accounts"></svg>
+    <p class="why"><b>Use when</b> the answer is "who is behind". <b>Why:</b> one zero line, red below plan and blue above, sorted by the gap so the ranking is the answer. Direct labels at the bar ends; no legend needed.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Ranking · horizontal bars with the leader highlighted</p>
+    <h2 id="t-regions"></h2>
+    <p class="sub">Net sales by interplanetary region, 2022 to 21 Aug, EUR. Top 10 of 15; the rest are grouped.</p>
+    <svg id="regions" viewBox="0 0 980 360" role="img" aria-labelledby="t-regions"></svg>
+    <p class="why"><b>Use when</b> the answer is a ranked list. <b>Why:</b> horizontal bars leave room for long names; the one bar the title talks about gets the colour and the rest stay grey; a long tail becomes "Other" instead of slivers.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Same measure across groups · small multiples</p>
+    <h2 id="t-delivery"></h2>
+    <p class="sub">On-time delivery, % of invoice lines, by month 2022. Six largest regions; same scale in every panel.</p>
+    <div id="delivery" class="multiples"></div>
+    <p class="why"><b>Use when</b> one measure has to be compared across several groups over time. <b>Why:</b> one line per panel on a shared scale beats six tangled lines on one chart; the dashed reference is the overall average.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Plan vs plan · dot plot</p>
+    <h2 id="t-forecast"></h2>
+    <p class="sub">Forecast vs budget by product type, full year 2022, EUR. Dot = forecast; tick = budget.</p>
+    <svg id="forecast" viewBox="0 0 980 330" role="img" aria-labelledby="t-forecast"></svg>
+    <p class="why"><b>Use when</b> two plans or two periods are compared item by item. <b>Why:</b> the connecting line is the gap; it reads faster than paired bars and keeps one axis.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">What to avoid</p>
+    <h2>Patterns that make answers harder to trust</h2>
+    <ul class="donts">
+      <li><b>Two y-axes.</b> Use two charts or small multiples.</li>
+      <li><b>Smoothed lines.</b> They invent values between months.</li>
+      <li><b>Budget as a second bar or line in a bold colour.</b> It's a target: draw a marker.</li>
+      <li><b>Pie charts for more than three parts.</b> Use sorted bars.</li>
+      <li><b>A label on every point.</b> Label the ends and the point the title is about.</li>
+      <li><b>Totals inside a chart of their parts.</b> The total flattens everything else.</li>
+      <li><b>Rainbow categories.</b> Grey for context, colour for the point.</li>
+      <li><b>Neutral titles ("Sales by month").</b> Say the finding.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+const DATA = {"monthly": [{"month": "2022-01", "actual": 1171585561, "budget": 1053642148}, {"month": "2022-02", "actual": 1158076176, "budget": 941133840}, {"month": "2022-03", "actual": 1343444308, "budget": 1143660200}, {"month": "2022-04", "actual": 1186123511, "budget": 1147499224}, {"month": "2022-05", "actual": 1148958208, "budget": 1060744742}, {"month": "2022-06", "actual": 1133430678, "budget": 1166509328}, {"month": "2022-07", "actual": 1122677282, "budget": 1171739207}, {"month": "2022-08", "actual": 761788294, "budget": 1099295301}], "accounts": [{"account": "Government Contract", "actual": 1168869267, "budget": 1273433656, "gapPct": -8.2}, {"account": "Supernova Spaceparts", "actual": 342380212, "budget": 371872861, "gapPct": -7.9}, {"account": "Pioneering Systems", "actual": 346142027, "budget": 363579984, "gapPct": -4.8}, {"account": "Black Flag Spaceships", "actual": 268780019, "budget": 281906391, "gapPct": -4.7}, {"account": "Sigil Interstellar", "actual": 355404464, "budget": 361737958, "gapPct": -1.8}, {"account": "Aminu Kano Navy", "actual": 217689565, "budget": 215893908, "gapPct": 0.8}, {"account": "Wel Walla Ship Repair", "actual": 302356865, "budget": 297173748, "gapPct": 1.7}, {"account": "Miller Space", "actual": 444083063, "budget": 426664053, "gapPct": 4.1}, {"account": "Andromeda Shipyards", "actual": 470895140, "budget": 432590850, "gapPct": 8.9}, {"account": "Antarctic Corporation", "actual": 772870016, "budget": 694926426, "gapPct": 11.2}, {"account": "Private Contract", "actual": 779457145, "budget": 686861223, "gapPct": 13.5}, {"account": "Macrohard Systems", "actual": 580393316, "budget": 473993830, "gapPct": 22.4}, {"account": "Elysium Aerospace", "actual": 560648917, "budget": 425521713, "gapPct": 31.8}], "regions": [{"region": "Îlos V Region", "netSales": 2399631496}, {"region": "Îlos IV Region", "netSales": 1279339327}, {"region": "Îlos VI-VII Region", "netSales": 985838728}, {"region": "Sol IV Region", "netSales": 937428218}, {"region": "Lakonía II Region", "netSales": 853627661}, {"region": "Sol III Region", "netSales": 732974087}, {"region": "Lakonía III-VIII Region", "netSales": 462458164}, {"region": "Transit Gate Region", "netSales": 436608980}, {"region": "Sol Belt Region", "netSales": 291461881}, {"region": "Lakonía IX Region", "netSales": 289570918}, {"region": "Eliad V Region", "netSales": 167647592}, {"region": "Arcadia III Region", "netSales": 147951495}, {"region": "Sol V Region", "netSales": 38325640}, {"region": "Lakonía Belt Region", "netSales": 1789641}, {"region": "Sol VI-VIII Region", "netSales": 1430191}], "delivery": [{"region": "Îlos V Region", "months": [{"month": "2022-01", "onTimePct": 73.4}, {"month": "2022-02", "onTimePct": 71.4}, {"month": "2022-03", "onTimePct": 68.7}, {"month": "2022-04", "onTimePct": 65.4}, {"month": "2022-05", "onTimePct": 62.4}, {"month": "2022-06", "onTimePct": 63.1}, {"month": "2022-07", "onTimePct": 63.2}, {"month": "2022-08", "onTimePct": 62.2}]}, {"region": "Îlos IV Region", "months": [{"month": "2022-01", "onTimePct": 73.6}, {"month": "2022-02", "onTimePct": 71.3}, {"month": "2022-03", "onTimePct": 69.4}, {"month": "2022-04", "onTimePct": 66.9}, {"month": "2022-05", "onTimePct": 64.1}, {"month": "2022-06", "onTimePct": 65.2}, {"month": "2022-07", "onTimePct": 64.9}, {"month": "2022-08", "onTimePct": 63.9}]}, {"region": "Îlos VI-VII Region", "months": [{"month": "2022-01", "onTimePct": 74.8}, {"month": "2022-02", "onTimePct": 72.4}, {"month": "2022-03", "onTimePct": 71.1}, {"month": "2022-04", "onTimePct": 67.1}, {"month": "2022-05", "onTimePct": 64.0}, {"month": "2022-06", "onTimePct": 65.3}, {"month": "2022-07", "onTimePct": 65.0}, {"month": "2022-08", "onTimePct": 64.3}]}, {"region": "Sol IV Region", "months": [{"month": "2022-01", "onTimePct": 64.0}, {"month": "2022-02", "onTimePct": 64.5}, {"month": "2022-03", "onTimePct": 67.3}, {"month": "2022-04", "onTimePct": 68.8}, {"month": "2022-05", "onTimePct": 67.8}, {"month": "2022-06", "onTimePct": 68.1}, {"month": "2022-07", "onTimePct": 66.0}, {"month": "2022-08", "onTimePct": 64.5}]}, {"region": "Lakonía II Region", "months": [{"month": "2022-01", "onTimePct": 69.2}, {"month": "2022-02", "onTimePct": 68.0}, {"month": "2022-03", "onTimePct": 68.1}, {"month": "2022-04", "onTimePct": 66.1}, {"month": "2022-05", "onTimePct": 65.9}, {"month": "2022-06", "onTimePct": 67.2}, {"month": "2022-07", "onTimePct": 66.5}, {"month": "2022-08", "onTimePct": 65.0}]}, {"region": "Sol III Region", "months": [{"month": "2022-01", "onTimePct": 67.3}, {"month": "2022-02", "onTimePct": 66.0}, {"month": "2022-03", "onTimePct": 69.9}, {"month": "2022-04", "onTimePct": 71.8}, {"month": "2022-05", "onTimePct": 70.1}, {"month": "2022-06", "onTimePct": 71.5}, {"month": "2022-07", "onTimePct": 69.1}, {"month": "2022-08", "onTimePct": 67.7}]}], "forecast": [{"productType": "Electrical", "forecast": 516542653, "budget": 676676570}, {"productType": "Planetary Systems", "forecast": 647385508, "budget": 761057579}, {"productType": "Hull & Shields", "forecast": 3013150780, "budget": 3241038379}, {"productType": "Fuel & Piping", "forecast": 952469343, "budget": 1008079430}, {"productType": "Modules", "forecast": 1004483744, "budget": 1037399507}, {"productType": "Projectiles", "forecast": 3269458787, "budget": 3315349519}, {"productType": "Structural", "forecast": 1110758675, "budget": 1124672409}, {"productType": "Life Support", "forecast": 1145300226, "budget": 1082082252}, {"productType": "Engine & Propulsion", "forecast": 1211004876, "budget": 1074556934}]};
+const NS = "http://www.w3.org/2000/svg";
+const el = (parent, tag, attrs = {}, text) => {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (text !== undefined) n.textContent = text;
+  parent.appendChild(n);
+  return n;
+};
+const eurBn = (v) => "€" + (v / 1e9).toFixed(2) + "bn";
+const eurM = (v) => "€" + Math.round(v / 1e6).toLocaleString("en-US") + "m";
+const pct = (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1) + "%";
+const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const tip = (node, text) => el(node, "title", {}, text);
+
+// 1. Columns with a budget marker
+(function monthly() {
+  const d = DATA.monthly, svg = document.getElementById("monthly");
+  const W = 980, H = 300, L = 56, B = 56, T = 12, plotH = H - B - T;
+  const max = Math.max(...d.map((r) => Math.max(r.actual, r.budget))) * 1.08;
+  const y = (v) => T + plotH - (v / max) * plotH;
+  for (let t = 0; t <= max; t += 250e6) {
+    el(svg, "line", { x1: L, x2: W, y1: y(t), y2: y(t), stroke: "var(--grid)" });
+    el(svg, "text", { x: L - 8, y: y(t) + 4, "text-anchor": "end" }, t === 0 ? "0" : "€" + (t / 1e9).toFixed(2) + "bn");
+  }
+  const step = (W - L) / d.length, bw = step * 0.56;
+  const full = d.filter((r) => r.month < "2022-08");
+  const ahead = full.filter((r) => r.actual >= r.budget).length;
+  document.getElementById("t-monthly").textContent = `Ahead of budget in ${ahead} of ${full.length} complete months, then behind in June and July`;
+  d.forEach((r, i) => {
+    const x = L + i * step + (step - bw) / 2, partial = r.month >= "2022-08";
+    const bar = el(svg, "rect", { x, y: y(r.actual), width: bw, height: y(0) - y(r.actual), rx: 4, fill: "var(--actual)", opacity: partial ? 0.35 : 1 });
+    tip(bar, `${MONTH[i]} 2022: actual ${eurM(r.actual)}, budget ${eurM(r.budget)}`);
+    el(svg, "line", { x1: x - 6, x2: x + bw + 6, y1: y(r.budget), y2: y(r.budget), stroke: "var(--plan)", "stroke-width": 3 });
+    el(svg, "text", { x: x + bw / 2, y: H - B + 18, "text-anchor": "middle", class: "lbl" }, MONTH[i] + (partial ? "*" : ""));
+    if (!partial) {
+      const g = (r.actual - r.budget) / r.budget * 100;
+      el(svg, "text", { x: x + bw / 2, y: H - B + 36, "text-anchor": "middle", style: `fill:var(${g < 0 ? "--below" : "--above"});font-weight:600` }, pct(g));
+    }
+  });
+  el(svg, "text", { x: W, y: H - 2, "text-anchor": "end" }, "* to 21 Aug (partial month)");
+})();
+
+// 2. Diverging bars
+(function accounts() {
+  const d = DATA.accounts, svg = document.getElementById("accounts");
+  const W = 980, L = 210, R = 70, rowH = 30, T = 8;
+  const ext = Math.max(...d.map((r) => Math.abs(r.gapPct))) * 1.1;
+  const x0 = L + (W - L - R) / 2, scale = (W - L - R) / 2 / ext;
+  svg.setAttribute("viewBox", `0 0 ${W} ${T + d.length * rowH + 24}`);
+  const behind = d.filter((r) => r.gapPct < 0);
+  document.getElementById("t-accounts").textContent = `${behind.length} of ${d.length} key accounts are behind budget; Government Contract is furthest, at ${pct(d[0].gapPct)}`;
+  d.forEach((r, i) => {
+    const yy = T + i * rowH, w = Math.abs(r.gapPct) * scale, neg = r.gapPct < 0;
+    el(svg, "text", { x: L - 12, y: yy + rowH / 2 + 4, "text-anchor": "end", class: i === 0 ? "strong" : "lbl" }, r.account);
+    const bar = el(svg, "rect", { x: neg ? x0 - w : x0, y: yy + 6, width: Math.max(w, 1), height: rowH - 12, rx: 3, fill: neg ? "var(--below)" : "var(--above)" });
+    tip(bar, `${r.account}: actual ${eurM(r.actual)} vs budget ${eurM(r.budget)} (${pct(r.gapPct)})`);
+    el(svg, "text", { x: neg ? x0 - w - 6 : x0 + w + 6, y: yy + rowH / 2 + 4, "text-anchor": neg ? "end" : "start", class: "lbl" }, pct(r.gapPct));
+  });
+  el(svg, "line", { x1: x0, x2: x0, y1: 0, y2: T + d.length * rowH, stroke: "var(--axis)", "stroke-width": 1.5 });
+  el(svg, "text", { x: x0, y: T + d.length * rowH + 18, "text-anchor": "middle" }, "budget");
+})();
+
+// 3. Ranked bars, leader highlighted, tail grouped
+(function regions() {
+  const all = DATA.regions, svg = document.getElementById("regions");
+  const top = all.slice(0, 10), rest = all.slice(10);
+  const d = [...top, { region: `Other ${rest.length} regions`, netSales: rest.reduce((s, r) => s + r.netSales, 0), other: true }];
+  const total = all.reduce((s, r) => s + r.netSales, 0);
+  const W = 980, L = 200, R = 150, rowH = 30, T = 4;
+  svg.setAttribute("viewBox", `0 0 ${W} ${T + d.length * rowH + 8}`);
+  const max = d[0].netSales, scale = (W - L - R) / max;
+  document.getElementById("t-regions").textContent = `Îlos V brings in ${Math.round(d[0].netSales / total * 100)}% of 2022 net sales, nearly twice the next region`;
+  d.forEach((r, i) => {
+    const yy = T + i * rowH, w = r.netSales * scale;
+    el(svg, "text", { x: L - 12, y: yy + rowH / 2 + 4, "text-anchor": "end", class: i === 0 ? "strong" : "lbl" }, r.region);
+    const bar = el(svg, "rect", { x: L, y: yy + 6, width: w, height: rowH - 12, rx: 3, fill: i === 0 ? "var(--actual)" : "var(--context)" });
+    tip(bar, `${r.region}: €${r.netSales.toLocaleString("en-US")}`);
+    el(svg, "text", { x: L + w + 8, y: yy + rowH / 2 + 4, class: i === 0 ? "strong" : "" }, i === 0 ? `${eurBn(r.netSales)} (${Math.round(r.netSales / total * 100)}%)` : eurM(r.netSales));
+  });
+})();
+
+// 4. Small multiples
+(function delivery() {
+  const box = document.getElementById("delivery");
+  const all = DATA.delivery.flatMap((g) => g.months.map((m) => m.onTimePct));
+  const lo = Math.floor(Math.min(...all) / 10) * 10, hi = Math.ceil(Math.max(...all) / 10) * 10;
+  const avg = all.reduce((s, v) => s + v, 0) / all.length;
+  const worst = DATA.delivery.map((g) => ({ g, last: g.months[g.months.length - 1].onTimePct })).sort((a, b) => a.last - b.last)[0];
+  document.getElementById("t-delivery").textContent = `On-time delivery sits near ${Math.round(avg)}% everywhere; ${worst.g.region.replace(" Region", "")} ends the period lowest, at ${worst.last}%`;
+  for (const g of DATA.delivery) {
+    const card = document.createElement("div");
+    card.innerHTML = `<h3>${g.region.replace(" Region", "")}</h3>`;
+    box.appendChild(card);
+    const W = 240, H = 110, L = 30, B = 18, T = 8;
+    const svg = el(card, "svg", { viewBox: `0 0 ${W} ${H}` });
+    const x = (i) => L + i * (W - L - 8) / (g.months.length - 1);
+    const y = (v) => T + (hi - v) / (hi - lo) * (H - B - T);
+    for (const t of [lo, hi]) el(svg, "text", { x: L - 4, y: y(t) + 4, "text-anchor": "end" }, t + "%");
+    el(svg, "line", { x1: L, x2: W - 8, y1: y(avg), y2: y(avg), stroke: "var(--axis)", "stroke-dasharray": "3 3" });
+    el(svg, "polyline", { points: g.months.map((m, i) => `${x(i)},${y(m.onTimePct)}`).join(" "), fill: "none", stroke: "var(--actual)", "stroke-width": 2, "stroke-linejoin": "round" });
+    const lastI = g.months.length - 1, last = g.months[lastI];
+    el(svg, "circle", { cx: x(lastI), cy: y(last.onTimePct), r: 4, fill: "var(--actual)" });
+    el(svg, "text", { x: x(lastI), y: y(last.onTimePct) - 8, "text-anchor": "end", class: "strong" }, last.onTimePct + "%");
+    el(svg, "text", { x: L, y: H - 2 }, "Jan");
+    el(svg, "text", { x: W - 8, y: H - 2, "text-anchor": "end" }, MONTH[Number(last.month.slice(5)) - 1]);
+  }
+})();
+
+// 5. Dot plot: forecast vs budget
+(function forecast() {
+  const d = DATA.forecast, svg = document.getElementById("forecast");
+  const W = 980, L = 170, R = 90, rowH = 34, T = 8;
+  svg.setAttribute("viewBox", `0 0 ${W} ${T + d.length * rowH + 28}`);
+  const max = Math.max(...d.flatMap((r) => [r.forecast, r.budget])) * 1.05, scale = (W - L - R) / max;
+  const below = d.filter((r) => r.forecast < r.budget);
+  document.getElementById("t-forecast").textContent = `${below.length} of ${d.length} product types are forecast below budget; ${d[0].productType} has the widest gap`;
+  for (let t = 0; t <= max; t += 250e6) {
+    el(svg, "line", { x1: L + t * scale, x2: L + t * scale, y1: 0, y2: T + d.length * rowH, stroke: "var(--grid)" });
+    el(svg, "text", { x: L + t * scale, y: T + d.length * rowH + 18, "text-anchor": "middle" }, t === 0 ? "0" : eurBn(t));
+  }
+  d.forEach((r, i) => {
+    const yy = T + i * rowH + rowH / 2, fx = L + r.forecast * scale, bx = L + r.budget * scale, neg = r.forecast < r.budget;
+    const g = (r.forecast - r.budget) / r.budget * 100;
+    el(svg, "text", { x: L - 12, y: yy + 4, "text-anchor": "end", class: i === 0 ? "strong" : "lbl" }, r.productType);
+    el(svg, "line", { x1: Math.min(fx, bx), x2: Math.max(fx, bx), y1: yy, y2: yy, stroke: neg ? "var(--below)" : "var(--above)", "stroke-width": 3 });
+    el(svg, "line", { x1: bx, x2: bx, y1: yy - 9, y2: yy + 9, stroke: "var(--plan)", "stroke-width": 3 });
+    const dot = el(svg, "circle", { cx: fx, cy: yy, r: 6, fill: neg ? "var(--below)" : "var(--above)", stroke: "var(--card)", "stroke-width": 2 });
+    tip(dot, `${r.productType}: forecast ${eurM(r.forecast)}, budget ${eurM(r.budget)} (${pct(g)})`);
+    el(svg, "text", { x: Math.max(fx, bx) + 12, y: yy + 4, style: `fill:var(${neg ? "--below" : "--above"});font-weight:600` }, pct(g));
+  });
+})();
+</script>
+</body>
+</html>

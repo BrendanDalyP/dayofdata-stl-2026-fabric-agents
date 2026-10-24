@@ -1,0 +1,19 @@
+{
+  "inputs": [
+    {
+      "id": "fabricToken",
+      "type": "promptString",
+      "description": "Fabric API token: az account get-access-token --resource https://api.fabric.microsoft.com --query accessToken -o tsv",
+      "password": true
+    }
+  ],
+  "servers": {
+    "spaceparts-sales-analyst": {
+      "type": "http",
+      "url": "https://api.fabric.microsoft.com/v1/mcp/workspaces/<workspace id>/dataagents/<agent id>/agent",
+      "headers": {
+        "Authorization": "Bearer ${input:fabricToken}"
+      }
+    }
+  }
+}

@@ -16,6 +16,8 @@ SpaceParts lakehouse ──▶ 3 data agents (Sales Analyst · Operations · Pla
 | [02 · Call the agents over MCP](labs/02-connectivity/README.md) | An MCP client in Python against all three agents | 15 min |
 | [03 · Fabric app](labs/03-fabric-app/README.md) | A Rayfin app: tabs of live charts through a lakehouse connector, the agent team in an Ask drawer and inline briefs, action buttons backed by Rayfin functions | 45 min |
 
+**[Examples](examples/README.md):** a chart gallery for agent answers, six ways to call or embed an agent, and an answer-format template with a parser.
+
 ## What makes the agents right
 
 SpaceParts invoices in 15 local currencies and reports in euros, and the data ends on 21 Aug 2022. The agents are told, and shown with example queries:
@@ -44,6 +46,10 @@ labs/
   01-data-agent/      agents/<name>/, verify_answers.sql, create_agents.py, evaluation notebooks …
   02-connectivity/    test_agent_mcp.py, requirements.txt
   03-fabric-app/      the Rayfin app (rayfin/, src/, fabric/)
+examples/
+  charts/             gallery.html: five chart forms for agent answers
+  embedding/          Node and VS Code clients; who asks, and when to use each
+  response-formatting/ instructions template, sample answers, answer parser
 scripts/discover.ps1  find workspaces, lakehouses and tables
 ```
 
