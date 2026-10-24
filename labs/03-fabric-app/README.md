@@ -71,6 +71,25 @@ answer + hand-offs + action buttons ─▶ buildRecoveryPlan / createAction ─�
 7. **Identity.** The app calls the agents as **itself** — Rayfin's app identity (`ctx.Tokens.Fabric`, the owner of the app item). No app registration, no secrets; answers read *answered as the app*. Every user's question runs with the owner's permissions on the agents' data, so scope the agents' tables accordingly.
 8. **Share:** give users *Run and interact* on the app item, and (because the connector is delegated) read access to the lakehouse.
 
+## Seed demo actions
+
+The Action board starts empty, and a fresh deploy or `db apply` can clear it. To put six realistic items on it before a demo, run:
+
+```powershell
+pip install mssql-python
+python fabric/seed_demo_actions.py --workspace-id <ws>
+```
+
+The six items:
+- a Government Contract recovery plan ("stretch", high priority);
+- escalating Government Contract's overdue orders;
+- flagging the Electrical forecast gap;
+- a Supernova Spaceparts follow-up;
+- a Sigil Interstellar watch;
+- one done item.
+
+They follow the same priority, due-date and recovery rules as the Rayfin functions. The script is safe to re-run: it replaces only the rows it seeded, and leaves items you created in the app alone.
+
 ## Offline fallback
 
 ```powershell
