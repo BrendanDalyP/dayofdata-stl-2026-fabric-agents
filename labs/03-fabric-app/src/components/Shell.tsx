@@ -3,7 +3,6 @@ import { Search } from "lucide-react";
 
 import { useAsk } from "@/agent/AskContext";
 import { agentMode } from "@/agent";
-import { BrandMark } from "@/components/Brand";
 import { ThemeMenu } from "@/components/ThemeMenu";
 import { cn } from "@/lib/utils";
 
@@ -12,8 +11,8 @@ export type TabId = "overview" | "accounts" | "operations" | "plan" | "actions";
 const TABS: Array<{ id: TabId; label: string; soon?: boolean }> = [
     { id: "overview", label: "Overview" },
     { id: "accounts", label: "Accounts" },
-    { id: "operations", label: "Operations", soon: true },
-    { id: "plan", label: "Plan", soon: true },
+    { id: "operations", label: "Operations" },
+    { id: "plan", label: "Plan" },
     { id: "actions", label: "Actions" },
 ];
 
@@ -25,12 +24,9 @@ export function Shell({ tab, onTab, children }: { tab: TabId; onTab: (t: TabId) 
     return (
         <div className="flex h-screen min-h-0 flex-col bg-background">
             <header className="brand-band flex h-14 shrink-0 items-center gap-6 border-b px-5">
-                <div className="flex items-center gap-2.5">
-                    <BrandMark size={30} />
-                    <div className="leading-tight">
-                        <div className="font-heading text-400 font-semibold tracking-tight text-white">SpaceParts <span className="font-normal text-white/70">Mission Control</span></div>
-                        <div className="text-100 text-white/60">Sales &amp; operations · data to 21 Aug 2022</div>
-                    </div>
+                <div className="leading-none" title="Sales & operations · data to 21 Aug 2022">
+                    <div className="text-100 font-semibold uppercase tracking-[0.22em] text-[#f0b429]">SpaceParts</div>
+                    <div className="mt-1 font-heading text-500 font-semibold tracking-tight text-white">Mission Control</div>
                 </div>
 
                 <nav aria-label="Sections" className="flex h-full items-stretch gap-1">

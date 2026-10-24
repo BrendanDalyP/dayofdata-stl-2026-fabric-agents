@@ -1,24 +1,17 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import { ArrowRight } from "lucide-react";
 
-import { useAsk, type Target } from "@/agent/AskContext";
-import { memberByKey, type AgentKey } from "@/agent/team";
+import { useAsk } from "@/agent/AskContext";
+import { memberByKey } from "@/agent/team";
 import { AgentBrief } from "@/components/AgentBrief";
-import { AskLink, Card, Skeleton } from "@/components/Card";
+import { Card, Skeleton } from "@/components/Card";
+import { Ask, Kpi } from "@/components/Kpi";
 import { PulseChart } from "@/components/viz/PulseChart";
 import { RegionGaps } from "@/components/viz/RegionGaps";
 import { Sparkline } from "@/components/viz/Sparkline";
 import { C, STATUS, statusOf, fmtEurShort } from "@/components/viz/common";
 import { DATA_END_LABEL, eur, gapPct, pct, type Subject } from "@/queries/overview";
 import { navigate } from "@/lib/nav";
-import { cn } from "@/lib/utils";
-
-/** An ask chip for a given agent. */
-function Ask({ agent, label, q, ctx }: { agent: AgentKey; label: string; q: string; ctx?: string }) {
-    const { ask } = useAsk();
-    const m = memberByKey(agent);
-    return <AskLink color={m.color} agent={m.tag} label={label} onClick={() => ask(q, agent as Target, ctx)} />;
-}
 
 export function OverviewPage() {
     const { data, dataError, ask, actions } = useAsk();
@@ -43,10 +36,10 @@ export function OverviewPage() {
     const open = (actions ?? []).filter((a) => a.status === "open").sort((a, b) => order[a.priority] - order[b.priority]).slice(0, 5);
 
     return (
-        <div className="grid h-full min-h-0 grid-cols-12 grid-rows-[auto_minmax(0,1.1fr)_minmax(0,1fr)] gap-3 max-[1100px]:h-auto max-[1100px]:grid-rows-none">
+        <div className="grid h-full min-h-0 grid-cols-12 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-3 max-[1100px]:h-auto max-[1100px]:grid-rows-none">
             {/* KPIs — each with the agent who can explain it */}
             <div className="col-span-12 grid grid-cols-5 gap-3 max-[1100px]:grid-cols-2">
-                <Kpi label="Net sales, 2022 to date" value={k && eur(k.net22, true)} note={`to ${DATA_END_LABEL}`}
+                <Kpi label="Net sales, 2022 to date" value={k && eur(k.net22, true)} note={`to ${DATA_END_LABEL} · dotted line = budget`}
                     spark={k && <Sparkline values={k.y22.map((m) => m.net)} band={k.y22.map((m) => m.budget)} color={C.series} />}
                     ask={<Ask agent="sales" label="By region" q="What were net sales in euros by region this year?" />} />
                 <Kpi label="Against budget, Jan–Jul" value={k && pct(k.gap, true)} tone={k && k.gap < 0 ? "bad" : "good"} note="complete months"
@@ -95,7 +88,7 @@ export function OverviewPage() {
                 ) : <Skeleton />}
             </Card>
             <Card className="col-span-4 max-[1100px]:col-span-12 max-[1100px]:h-96" title="Regions vs budget"
-                subtitle="Jan–Jul · the regional budget split is very uneven"
+                subtitle="Jan–Jul gap to budget · click a region"
                 actions={<Ask agent="sales" label="Why so uneven?" q="Which regions are furthest above and below budget this year, and which key accounts drive that?" />}>
                 {data ? <RegionGaps regions={data.regions} onSelect={(r: Subject) => ask(`How is ${r.name} doing against budget this year (${pct(gapPct(r), true)} Jan–Jul), and which key accounts drive it?`, "sales", r.name)} /> : <Skeleton />}
             </Card>
@@ -153,24 +146,6 @@ function MoverList({ title, list }: { title: string; list: Subject[] }) {
                     );
                 })}
             </ul>
-        </div>
-    );
-}
-
-function Kpi({ label, value, note, tone, spark, ask, onClick }: {
-    label: string; value?: string; note?: ReactNode; tone?: "bad" | "good"; spark?: ReactNode; ask?: ReactNode; onClick?: () => void;
-}) {
-    return (
-        <div className={cn("flex h-full flex-col rounded-lg border border-border bg-card px-4 py-3", onClick && "cursor-pointer hover:border-brand")} onClick={onClick}>
-            <div className="text-200 font-semibold text-muted-foreground">{label}</div>
-            <div className="mt-1 flex items-end justify-between gap-2">
-                <div className={cn("font-heading text-hero-800 font-semibold leading-hero-800 tracking-tight", tone === "bad" ? "text-destructive" : "text-emphasis-foreground")}>
-                    {value ?? <span className="inline-block h-8 w-28 rounded bg-muted trace-pulse" />}
-                </div>
-                {spark}
-            </div>
-            <div className="mt-1 truncate text-100 text-muted-foreground">{note}</div>
-            {ask && <div className="mt-2" onClick={(e) => e.stopPropagation()}>{ask}</div>}
         </div>
     );
 }

@@ -83,4 +83,4 @@ export const TEAM: TeamMember[] = [
 
 export const memberByKey = (key: AgentKey) => TEAM.find((m) => m.key === key)!;
 export const TEAM_COLOR = "#52514e";
-export const colorOf = (key: AgentKey | "team") => (key === "team" ? TEAM_COLOR : memberByKey(key).color);
+export const colorOf = (key: AgentKey | "auto") => (key === "auto" ? TEAM_COLOR : memberByKey(key).color);

@@ -8,7 +8,7 @@ import { PlanCard } from "@/components/AgentAnswer";
 import { AskLink, Card, Skeleton } from "@/components/Card";
 import { AccountTrend } from "@/components/viz/AccountTrend";
 import { VarianceHeatmap } from "@/components/viz/VarianceHeatmap";
-import { Sparkline } from "@/components/viz/Sparkline";
+import { GapStrip } from "@/components/viz/GapStrip";
 import { C, STATUS, StatusBadge, statusOf, fmtEurShort } from "@/components/viz/common";
 import { MONTHS_REMAINING, eur, gapPct, pct, type Subject } from "@/queries/overview";
 import { buildRecoveryPlan, createAction } from "@/services/actions";
@@ -52,6 +52,12 @@ export function AccountsPage({ selected }: { selected?: string }) {
         <div className="grid h-full min-h-0 grid-cols-12 gap-3 max-[1100px]:h-auto">
             {/* master list */}
             <Card className="col-span-4 max-[1100px]:col-span-12" title="Key accounts" subtitle={`${accounts.length} accounts · Jan–Jul 2022 vs budget`} actions={toggle} bodyClassName="overflow-y-auto -mx-2">
+                <div className="grid grid-cols-[16px_1fr_84px_60px] gap-2 px-2 pb-1 text-100 font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span />
+                    <span>Account</span>
+                    <span title="Each bar is one month, Jan–Jul 2022: up and blue = above budget, down and red = below">Each month</span>
+                    <span className="text-right">Jan–Jul</span>
+                </div>
                 <ul>
                     {accounts.map((a) => {
                         const g = gapPct(a);
@@ -60,17 +66,21 @@ export function AccountsPage({ selected }: { selected?: string }) {
                         return (
                             <li key={a.name}>
                                 <button type="button" onClick={() => navigate("accounts", a.name)} aria-current={active ? "true" : undefined}
-                                    className={cn("grid w-full grid-cols-[16px_1fr_72px_60px] items-center gap-2 rounded-md px-2 py-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                                    className={cn("grid w-full grid-cols-[16px_1fr_84px_60px] items-center gap-2 rounded-md px-2 py-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                         active ? "bg-accent" : "hover:bg-muted")}>
                                     <span aria-label={STATUS[statusOf(g)].label} style={{ color: STATUS[statusOf(g)].color }}>{STATUS[statusOf(g)].icon}</span>
                                     <span className={cn("truncate text-300", active ? "font-semibold text-emphasis-foreground" : "text-foreground")}>{a.name}</span>
-                                    <Sparkline values={ytd.map((m) => m.net)} band={ytd.map((m) => m.budget)} color={g < 0 ? C.below : C.series} width={72} height={22} />
+                                    <GapStrip months={ytd.map((m) => ({ label: m.month.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }), gap: m.budget ? (m.net / m.budget - 1) * 100 : 0 }))} />
                                     <span className="tabular text-right text-200 font-semibold" style={{ color: g < 0 ? C.below : undefined }}>{pct(g, true)}</span>
                                 </button>
                             </li>
                         );
                     })}
                 </ul>
+                <p className="px-2 pt-2 text-100 text-muted-foreground">
+                    <span className="mr-1 inline-block h-2 w-1.5 align-middle" style={{ background: C.above }} />above budget
+                    <span className="ml-3 mr-1 inline-block h-2 w-1.5 align-middle" style={{ background: C.below }} />below budget, per month
+                </p>
             </Card>
 
             {/* detail */}

@@ -41,6 +41,11 @@ const spacepartsConfig = {
     SalesVsBudget: ['rowKey', 'month', 'interplanetaryRegion', 'keyAccountName', 'netSalesEur', 'budgetEur'],
     DeliveryByMonth: ['rowKey', 'month', 'onTimeLines', 'invoiceLines', 'latePenaltiesEur'],
     ForecastVsBudget: ['rowKey', 'month', 'productType', 'forecastEur', 'budgetEur'],
+    OrderBacklog: ['rowKey', 'statusGroup', 'statusText', 'statusOrdinal', 'interplanetaryRegion', 'keyAccountName', 'orderLines', 'valueEur'],
+    DeliveryByRegion: ['rowKey', 'month', 'interplanetaryRegion', 'onTimeLines', 'invoiceLines', 'latePenaltiesEur'],
+    CancellationsByType: ['rowKey', 'productType', 'cancelledEur', 'orderedEur'],
+    TerritoryVsForecast: ['rowKey', 'month', 'territory', 'interplanetaryRegion', 'forecastEur', 'actualEur'],
+    BrandVsBudget: ['rowKey', 'month', 'brand', 'brandClass', 'actualEur', 'budgetEur'],
   },
 } as const satisfies ConnectorConfig;
 

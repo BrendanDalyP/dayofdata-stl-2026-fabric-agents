@@ -16,7 +16,7 @@ export function Card({ title, subtitle, actions, children, className, bodyClassN
                     {actions && <div className="flex shrink-0 flex-wrap gap-1.5">{actions}</div>}
                 </header>
             )}
-            <div className={cn("min-h-0 flex-1", bodyClassName)}>{children}</div>
+            <div className={cn("min-h-0 flex-1 overflow-hidden", bodyClassName)}>{children}</div>
         </section>
     );
 }

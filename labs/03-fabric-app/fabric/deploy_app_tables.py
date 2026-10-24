@@ -1,7 +1,9 @@
 """Creates (or updates) the notebook nb__build_app_tables in your workspace, attaches the
 SpaceParts lakehouse, runs it, and waits. The notebook runs build_app_tables.sql in Spark and
-writes three small Delta tables (app.sales_vs_budget, app.delivery_by_month,
-app.forecast_vs_budget) that the app's Overview page reads through the Rayfin connector.
+writes eight small Delta tables that the app's tabs read through the Rayfin connector:
+app.sales_vs_budget, app.delivery_by_month, app.forecast_vs_budget (Overview, Accounts),
+app.order_backlog, app.delivery_by_region, app.cancellations_by_type (Operations),
+app.territory_vs_forecast, app.brand_vs_budget (Plan).
 
 Why tables and not SQL views: the Rayfin lakehouse connector reads through Fabric's GraphQL
 layer, which needs table metadata — views are rejected ("Could not find metadata").
@@ -59,7 +61,7 @@ def notebook_definition(ws: str, lh: str, lh_name: str) -> dict:
         cells.append({"cell_type": "code", "metadata": {"microsoft": {"language": "sparksql"}}, "execution_count": None, "outputs": [],
                       "source": ["%%sql\n", s + "\n"]})
     cells.append({"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [],
-                  "source": ["for t in ['sales_vs_budget', 'delivery_by_month', 'forecast_vs_budget']:\n",
+                  "source": ["for t in ['sales_vs_budget', 'delivery_by_month', 'forecast_vs_budget', 'order_backlog', 'delivery_by_region', 'cancellations_by_type', 'territory_vs_forecast', 'brand_vs_budget']:\n",
                              "    print(t, spark.table(f'app.{t}').count())\n"]})
     nb = {
         "nbformat": 4, "nbformat_minor": 5, "cells": cells,
@@ -110,7 +112,7 @@ def main():
             break
     if status != "Completed":
         sys.exit(f"Notebook run {status}: {json.dumps(job.get('failureReason'))[:1500]}")
-    print("Done. Tables: app.sales_vs_budget, app.delivery_by_month, app.forecast_vs_budget")
+    print("Done. Eight app.* tables written.")
 
 
 if __name__ == "__main__":

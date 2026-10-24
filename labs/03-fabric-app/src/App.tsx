@@ -6,6 +6,8 @@ import { Shell } from "@/components/Shell";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { AccountsPage } from "@/pages/AccountsPage";
 import { ActionsPage } from "@/pages/ActionsPage";
+import { OperationsPage } from "@/pages/OperationsPage";
+import { PlanPage } from "@/pages/PlanPage";
 import { navigate, parseRoute } from "@/lib/nav";
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
             <Shell tab={route.tab} onTab={(t) => navigate(t)}>
                 {route.tab === "overview" && <OverviewPage />}
                 {route.tab === "accounts" && <AccountsPage selected={route.account} />}
+                {route.tab === "operations" && <OperationsPage />}
+                {route.tab === "plan" && <PlanPage />}
                 {route.tab === "actions" && <ActionsPage />}
             </Shell>
             <AskDrawer />

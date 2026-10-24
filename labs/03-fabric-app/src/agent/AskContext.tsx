@@ -1,12 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { askAgent, type AgentAnswer } from "@/agent";
-import { TEAM, type AgentKey } from "@/agent/team";
+import type { AgentKey } from "@/agent/team";
+import { routeQuestion } from "@/agent/route";
 import { listActions, type ActionRow } from "@/services/actions";
 import { loadCommandData, type CommandData } from "@/queries/overview";
 import type { RecoveryPlanResult } from "../../rayfin/functions/src/types";
 
-export type Target = AgentKey | "team";
+/** Who answers: a named agent, or "auto" (the app routes the question to the right agent). */
+export type Target = AgentKey | "auto";
 
 export interface Reply {
     agent: AgentKey;
@@ -15,7 +17,7 @@ export interface Reply {
     done: Record<string, string>; // action key → "busy" | "done" | "Failed: …"
     plan?: RecoveryPlanResult;
 }
-export interface Turn { id: string; question: string; context?: string; replies: Reply[] }
+export interface Turn { id: string; question: string; context?: string; replies: Reply[]; /** Set when auto mode picked the agent. */ routed?: string }
 
 interface AskState {
     data?: CommandData;
@@ -27,7 +29,7 @@ interface AskState {
     thread: Turn[];
     clear: () => void;
     busy: boolean;
-    /** Ask an agent (or the whole team); opens the drawer. `context` is shown as a chip, e.g. "Government Contract · Apr 2022". */
+    /** Ask an agent (or "auto" to route it); opens the drawer. `context` is shown as a chip, e.g. "Government Contract · Apr 2022". */
     ask: (question: string, to: Target, context?: string) => void;
     /** Put an already-answered brief into the thread and open the drawer. */
     continueInChat: (question: string, reply: Reply, context?: string) => void;
@@ -50,7 +52,7 @@ export function AskProvider({ children }: { children: ReactNode }) {
     const [data, setData] = useState<CommandData>();
     const [dataError, setDataError] = useState<string>();
     const [open, setOpen] = useState(false);
-    const [target, setTarget] = useState<Target>("sales");
+    const [target, setTarget] = useState<Target>("auto");
     const [thread, setThread] = useState<Turn[]>([]);
     const [busy, setBusy] = useState(false);
     const [actions, setActions] = useState<ActionRow[] | null>(null);
@@ -74,10 +76,10 @@ export function AskProvider({ children }: { children: ReactNode }) {
         const q = question.trim();
         if (!q) return;
         setOpen(true);
-        setTarget(to);
         const id = crypto.randomUUID();
-        const agents: AgentKey[] = to === "team" ? TEAM.map((m) => m.key) : [to];
-        setThread((t) => [...t, { id, question: q, context, replies: agents.map((agent) => ({ agent, done: {} })) }]);
+        const route = to === "auto" ? routeQuestion(q) : undefined;
+        const agents: AgentKey[] = [route ? route.agent : (to as AgentKey)];
+        setThread((t) => [...t, { id, question: q, context, routed: route?.why, replies: agents.map((agent) => ({ agent, done: {} })) }]);
         setBusy(true);
         void Promise.all(agents.map(async (agent) => {
             try {
@@ -92,7 +94,6 @@ export function AskProvider({ children }: { children: ReactNode }) {
 
     const continueInChat = useCallback((question: string, reply: Reply, context?: string) => {
         setThread((t) => [...t, { id: crypto.randomUUID(), question, context, replies: [reply] }]);
-        setTarget(reply.agent);
         setOpen(true);
     }, []);
 
