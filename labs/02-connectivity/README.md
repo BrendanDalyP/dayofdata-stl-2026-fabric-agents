@@ -46,7 +46,7 @@ The agent answers with the permissions of **whoever calls it**. Pick one on purp
 
 > Microsoft's documentation is inconsistent about service-principal support when *querying* agents. Test it in your tenant early, and keep the app-identity fallback ready (the Rayfin function in this repo falls back automatically).
 
-### 3.1 Register the app
+### 4.1 Register the app
 
 1. Entra admin center → **App registrations** → **New registration**.
 2. Name: `spaceparts-mission-control-agent`. Single tenant. No redirect URI.
@@ -55,11 +55,11 @@ The agent answers with the permissions of **whoever calls it**. Pick one on purp
 
 No API permissions are needed: Fabric checks **workspace roles**, not consented scopes, for service principals.
 
-### 3.2 Allow service principals to use Fabric
+### 4.2 Allow service principals to use Fabric
 
 Fabric admin portal → Tenant settings → **Service principals can use Fabric APIs** → enabled for a security group that contains the app (recommended) or the whole org.
 
-### 3.3 Give the app access
+### 4.3 Give the app access
 
 In the workspace that holds the agent and the lakehouse:
 
@@ -67,7 +67,7 @@ In the workspace that holds the agent and the lakehouse:
 2. Role: **Contributor** (Member also works). Viewer is not enough to call the agent.
 3. If the lakehouse lives in a different workspace, give the app **Read** on the lakehouse item (Share → Read all SQL endpoint data).
 
-### 3.4 Run the same script as the service principal
+### 4.4 Run the same script as the service principal
 
 Create `.env` next to the script (it's git-ignored):
 
@@ -77,7 +77,7 @@ AGENT_CLIENT_ID=<client-id>
 AGENT_CLIENT_SECRET=<secret>
 ```
 
-Run the script again. Before step 3.3 you should see a 403 with a hint; after it, the same answer. That's the identity working.
+Run the script again. Before step 4.3 you should see a 403 with a hint; after it, the same answer. That's the identity working.
 
 Or smoke-test the token by hand:
 
