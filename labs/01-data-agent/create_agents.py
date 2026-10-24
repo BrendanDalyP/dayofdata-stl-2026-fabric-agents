@@ -93,11 +93,12 @@ def b64(obj) -> str:
     return base64.b64encode(json.dumps(obj, ensure_ascii=False, indent=2).encode("utf-8")).decode()
 
 
-def build_definition(folder: pathlib.Path, args, cols) -> tuple[dict, dict]:
+def build_definition(folder: pathlib.Path, args, cols, blank: bool = False) -> tuple[dict, dict]:
     meta = json.loads((folder / "agent.json").read_text(encoding="utf-8"))
-    instructions = (folder / "instructions.md").read_text(encoding="utf-8")
-    ds_instructions = (folder / "datasource-instructions.md").read_text(encoding="utf-8")
-    shots = json.loads((folder / "fewshots.json").read_text(encoding="utf-8"))
+    # blank: same tables, but no instructions and no example queries (the live-build starting point)
+    instructions = "" if blank else (folder / "instructions.md").read_text(encoding="utf-8")
+    ds_instructions = "" if blank else (folder / "datasource-instructions.md").read_text(encoding="utf-8")
+    shots = [] if blank else json.loads((folder / "fewshots.json").read_text(encoding="utf-8"))
 
     tables = [
         element(t, "lakehouse_tables.table", True, [element(c, "lakehouse_tables.column", True, data_type=d) for c, d in cols[t]])
@@ -126,6 +127,31 @@ def build_definition(folder: pathlib.Path, args, cols) -> tuple[dict, dict]:
     return meta, {"parts": parts}
 
 
+LIVE_NAME = "SpaceParts Sales Analyst (live)"
+
+
+def live_reset(args):
+    """Create or reset the live-build agent: Sales Analyst tables, empty instructions, no examples, unpublished."""
+    global TOKEN
+    folder = ROOT / "sales-analyst"
+    meta = json.loads((folder / "agent.json").read_text(encoding="utf-8"))
+    cols = columns_for(args.sql_server, args.lakehouse_name, args.schema, meta["tables"])
+    _, definition = build_definition(folder, args, cols, blank=True)
+    TOKEN = az_token("https://api.fabric.microsoft.com")
+    ws = args.workspace_id
+    existing = {a["displayName"]: a["id"] for a in (call("GET", f"{API}/workspaces/{ws}/dataAgents") or {}).get("value", [])}
+    if LIVE_NAME in existing:
+        print(f"Resetting {LIVE_NAME} ({existing[LIVE_NAME]})")
+        call("POST", f"{API}/workspaces/{ws}/dataAgents/{existing[LIVE_NAME]}/updateDefinition", {"definition": definition})
+    else:
+        print(f"Creating  {LIVE_NAME}")
+        body = {"displayName": LIVE_NAME, "description": "Live-build copy of the Sales Analyst for Demo 1. Not used by the app.", "definition": definition}
+        if args.folder_id:
+            body["folderId"] = args.folder_id
+        call("POST", f"{API}/workspaces/{ws}/dataAgents", body)
+    print("Done: 8 tables selected, no instructions, no example queries, not published.")
+
+
 def main():
     global TOKEN
     p = argparse.ArgumentParser()
@@ -136,7 +162,14 @@ def main():
     p.add_argument("--schema", default="SpaceParts")
     p.add_argument("--only", help="agent folder name to build, e.g. sales-analyst")
     p.add_argument("--folder-id", help="workspace folder to create the agents in (e.g. Day of Data STL)")
+    p.add_argument("--live-reset", action="store_true",
+                   help="create or reset 'SpaceParts Sales Analyst (live)': the Sales tables only, no instructions, no examples, "
+                        "not published. The starting point for the live build in Demo 1; re-run to reset it.")
     args = p.parse_args()
+
+    if args.live_reset:
+        live_reset(args)
+        return
 
     folders = [f for f in sorted(ROOT.iterdir()) if (f / "agent.json").exists() and (not args.only or f.name == args.only)]
     all_tables = sorted({t for f in folders for t in json.loads((f / "agent.json").read_text(encoding="utf-8"))["tables"]})
